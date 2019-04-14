@@ -25,6 +25,17 @@ using Test
   @test _vertex_to_cells_data == vertex_to_cells_data
   @test _vertex_to_cells_ptrs == vertex_to_cells_ptrs
 
+  _cell_to_faces_data, _cell_to_faces_ptrs = cell_to_faces(
+    cell_to_vertices_data,
+    cell_to_vertices_ptrs,
+    ctype_to_lface_to_lvertices_data,
+    ctype_to_lface_to_lvertices_ptrs,
+    cell_to_ctype,
+    vertex_to_cells_data,
+    vertex_to_cells_ptrs)
+
+  @test cell_to_faces_data == _cell_to_faces_data
+  @test cell_to_faces_ptrs == _cell_to_faces_ptrs
 
 end
 
