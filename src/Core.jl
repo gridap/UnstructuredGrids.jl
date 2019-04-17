@@ -4,7 +4,9 @@ using UnstructuredGrids.Kernels: generate_data_and_ptrs
 
 export UGrid
 export RefCell
-export gridpoints, gridcells, celltypes
+export Grid
+export gridpoints, gridcells, celltypes, refcells
+export vtkid, vtknodes
 import Base: ==
 import Base: show
 
@@ -104,5 +106,11 @@ gridpoints(grid::Grid) = grid.data.points
 gridcells(grid::Grid) = (grid.data.cells.data, grid.data.cells.ptrs)
 
 celltypes(grid::Grid) = grid.data.celltypes
+
+refcells(grid::Grid) = grid.refcells
+
+vtkid(grid::RefCell) = grid.vtkid
+
+vtknodes(grid::RefCell) = grid.vtknodes
 
 end #module Core
