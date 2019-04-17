@@ -4,6 +4,7 @@ export face_to_cells
 export cell_to_faces
 export rewind_ptrs!
 export length_to_ptrs!
+export generate_data_and_ptrs
 
 """
 Given the faces on the boundary of each cell,
@@ -60,9 +61,38 @@ function length_to_ptrs!(ptrs::AbstractArray{<:Integer})
   end
 end
 
+"""
+Given a vector of vectors compute the corresponding data and and ptrs
+"""
+function generate_data_and_ptrs(vv::Vector{Vector{Int}})
+  ptrs = Vector{Int}(undef,length(vv)+1)
+  _generate_data_and_ptrs_fill_ptrs!(ptrs,vv)
+  length_to_ptrs!(ptrs)
+  ndata = ptrs[end]-1
+  data = Vector{Int}(undef,ndata)
+  _generate_data_and_ptrs_fill_data!(data,vv)
+  (data, ptrs)
+end
+
 # Helpers
 
 const UNSET = 0
+
+function _generate_data_and_ptrs_fill_ptrs!(ptrs,vv)
+  for (i,v) in enumerate(vv)
+    ptrs[i+1] = length(v)
+  end
+end
+
+function _generate_data_and_ptrs_fill_data!(data,vv)
+  k = 1
+  for v in vv
+    for vi in v
+      data[k] = vi
+      k += 1
+    end
+  end
+end
 
 function _face_to_cells(cell_to_faces_data, cell_to_faces_ptrs, nfaces)
 

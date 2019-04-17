@@ -3,6 +3,16 @@ module KernelsTests
 using Test
 using UnstructuredGrids.Kernels
 
+vv = [[1,2,3],[2,3],[5,8],Int[],[1,2,4]]
+
+_data, _ptrs = generate_data_and_ptrs(vv)
+
+data = [1, 2, 3, 2, 3, 5, 8, 1, 2, 4]
+ptrs = [1, 4, 6, 8, 8, 11]
+
+@test data == _data
+@test ptrs == _ptrs
+
 a = [9,2,1,2,4,7,4]
 b = [1,9,2,1,2,4,7]
 
