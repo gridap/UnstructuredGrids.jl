@@ -2,7 +2,7 @@ module Factories
 
 using UnstructuredGrids.Helpers
 using UnstructuredGrids.Kernels
-using UnstructuredGrids.UGrids
+using UnstructuredGrids.Core
 
 # **DISCLAIMER**
 # This library is not supposed to be a mesh generator.

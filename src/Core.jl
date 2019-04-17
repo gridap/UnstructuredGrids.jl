@@ -1,4 +1,4 @@
-module UGrids
+module Core
 
 using UnstructuredGrids.Kernels: generate_data_and_ptrs
 
@@ -105,4 +105,4 @@ gridcells(grid::Grid) = (grid.data.cells.data, grid.data.cells.ptrs)
 
 celltypes(grid::Grid) = grid.data.celltypes
 
-end #module UGrids
+end #module Core
