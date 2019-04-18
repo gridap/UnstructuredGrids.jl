@@ -4,6 +4,14 @@ using Test
 using UnstructuredGrids.Core
 using UnstructuredGrids.Factories
 
+c = Connections([[1,2,6,3,],[1,4,4],[1]])
+s = """
+    1 -> [1, 2, 6, 3]
+    2 -> [1, 4, 4]
+    3 -> [1]
+    """
+@test s == string(c)
+
 grid = generate(domain=(0,1,-1,0),partition=(2,2))
 
 graph = GridGraph(grid)

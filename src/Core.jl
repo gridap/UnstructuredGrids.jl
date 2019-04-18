@@ -7,6 +7,7 @@ export UGrid
 export RefCell
 export Grid
 export GridGraph
+export Connections
 export VERTEX
 export gridpoints, gridcells, celltypes, refcells
 export connections
