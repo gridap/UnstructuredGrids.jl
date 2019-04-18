@@ -53,4 +53,16 @@ _face_to_ftype = generate_face_to_ftype(
 
 @test face_to_ftype == _face_to_ftype
 
+_face_to_vertices_data, _face_to_vertices_ptrs = generate_face_to_vertices(
+  cell_to_vertices_data,
+  cell_to_vertices_ptrs,
+  cell_to_faces_data,
+  cell_to_faces_ptrs,
+  cell_to_ctype,
+  ctype_to_lface_to_lvertices_data,
+  ctype_to_lface_to_lvertices_ptrs)
+
+@test face_to_vertices_data == _face_to_vertices_data
+@test face_to_vertices_ptrs == _face_to_vertices_ptrs
+
 end # module KernelsTests

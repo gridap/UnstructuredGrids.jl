@@ -3,6 +3,7 @@ module Kernels
 export generate_face_to_cells
 export generate_cell_to_faces
 export generate_face_to_ftype
+export generate_face_to_vertices
 export rewind_ptrs!
 export length_to_ptrs!
 export generate_data_and_ptrs
@@ -53,6 +54,26 @@ function generate_face_to_ftype(
     cell_to_faces_ptrs,
     cell_to_ctype,
     ctype_to_lface_to_ftype,
+    nfaces)
+end
+
+function generate_face_to_vertices(
+  cell_to_vertices_data::AbstractVector{<:Integer},
+  cell_to_vertices_ptrs::AbstractVector{<:Integer},
+  cell_to_faces_data::AbstractVector{<:Integer},
+  cell_to_faces_ptrs::AbstractVector{<:Integer},
+  cell_to_ctype::AbstractVector{<:Integer},
+  ctype_to_lface_to_lvertices_data::AbstractVector{<:AbstractVector{<:Integer}},
+  ctype_to_lface_to_lvertices_ptrs::AbstractVector{<:AbstractVector{<:Integer}},
+  nfaces::Int=maximum(cell_to_faces_data))
+  _face_to_vertices(
+    cell_to_vertices_data,
+    cell_to_vertices_ptrs,
+    cell_to_faces_data,
+    cell_to_faces_ptrs,
+    cell_to_ctype,
+    ctype_to_lface_to_lvertices_data,
+    ctype_to_lface_to_lvertices_ptrs,
     nfaces)
 end
 
@@ -597,5 +618,105 @@ function _face_to_ftype_fill!(
 
 end
 
+function _face_to_vertices(
+  cell_to_vertices_data,
+  cell_to_vertices_ptrs,
+  cell_to_faces_data,
+  cell_to_faces_ptrs,
+  cell_to_ctype,
+  ctype_to_lface_to_lvertices_data,
+  ctype_to_lface_to_lvertices_ptrs,
+  nfaces)
+
+  face_to_vertices_ptrs = fill(UNSET,nfaces+1)
+
+  _face_to_vertices_count!(
+    face_to_vertices_ptrs,
+    cell_to_faces_data,
+    cell_to_faces_ptrs,
+    cell_to_ctype,
+    ctype_to_lface_to_lvertices_ptrs)
+
+  length_to_ptrs!(face_to_vertices_ptrs)
+  ndata = face_to_vertices_ptrs[end]-1
+  face_to_vertices_data = fill(UNSET,ndata)
+
+  _face_to_vertices_fill!(
+    face_to_vertices_data,
+    face_to_vertices_ptrs,
+    cell_to_vertices_data,
+    cell_to_vertices_ptrs,
+    cell_to_faces_data,
+    cell_to_faces_ptrs,
+    cell_to_ctype,
+    ctype_to_lface_to_lvertices_data,
+    ctype_to_lface_to_lvertices_ptrs)
+
+  (face_to_vertices_data, face_to_vertices_ptrs)
+
+end
+
+function _face_to_vertices_count!(
+  face_to_vertices_ptrs,
+  cell_to_faces_data,
+  cell_to_faces_ptrs,
+  cell_to_ctype,
+  ctype_to_lface_to_lvertices_ptrs)
+
+  ncells = length(cell_to_ctype)
+  for cell in 1:ncells
+    ctype = cell_to_ctype[cell]
+    lface_to_lvertices_ptrs = ctype_to_lface_to_lvertices_ptrs[ctype]
+    a = cell_to_faces_ptrs[cell]-1
+    nlfaces = cell_to_faces_ptrs[cell+1] - (a + 1)
+    for lface in 1:nlfaces
+      face = cell_to_faces_data[a+lface]
+      if face_to_vertices_ptrs[face+1] != UNSET
+        continue
+      end
+      nfvertices = (
+        lface_to_lvertices_ptrs[lface+1]-lface_to_lvertices_ptrs[lface])
+      face_to_vertices_ptrs[face+1] = nfvertices
+    end
+  end
+
+end
+
+function _face_to_vertices_fill!(
+  face_to_vertices_data,
+  face_to_vertices_ptrs,
+  cell_to_vertices_data,
+  cell_to_vertices_ptrs,
+  cell_to_faces_data,
+  cell_to_faces_ptrs,
+  cell_to_ctype,
+  ctype_to_lface_to_lvertices_data,
+  ctype_to_lface_to_lvertices_ptrs)
+
+  ncells = length(cell_to_ctype)
+  for cell in 1:ncells
+    ctype = cell_to_ctype[cell]
+    lface_to_lvertices_data = ctype_to_lface_to_lvertices_data[ctype]
+    lface_to_lvertices_ptrs = ctype_to_lface_to_lvertices_ptrs[ctype]
+    a = cell_to_faces_ptrs[cell]-1
+    c = cell_to_vertices_ptrs[cell]-1
+    nlfaces = cell_to_faces_ptrs[cell+1] - (a + 1)
+    for lface in 1:nlfaces
+      face = cell_to_faces_data[a+lface]
+      v = face_to_vertices_ptrs[face]-1
+      if face_to_vertices_data[v+1] != UNSET
+        continue
+      end
+      b = lface_to_lvertices_ptrs[lface]-1
+      nfvertices = lface_to_lvertices_ptrs[lface+1] - (b + 1)
+      for lfvertex in 1:nfvertices
+        lvertex = lface_to_lvertices_data[b+lfvertex]
+        vertex = cell_to_vertices_data[c+lvertex]
+        face_to_vertices_data[v+lfvertex] = vertex
+      end
+    end
+  end
+
+end
 
 end # module Kernels
