@@ -44,5 +44,13 @@ ptrs = [1, 2, 4, 5, 7, 11, 13, 14, 16, 17]
 @test c.data == data
 @test c.ptrs == ptrs
 
+grid = generate(domain=(0,1,-1,0,2,3),partition=(2,4,3))
+
+graph = GridGraph(grid)
+
+c = connections(graph,from=3,to=2)
+c = connections(graph,from=3,to=0)
+c = connections(graph,from=2,to=3)
+c = connections(graph,from=0,to=3)
 
 end # module CoreTests
