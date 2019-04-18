@@ -1,7 +1,7 @@
 module Kernels
 
-export face_to_cells
-export cell_to_faces
+export generate_face_to_cells
+export generate_cell_to_faces
 export rewind_ptrs!
 export length_to_ptrs!
 export generate_data_and_ptrs
@@ -10,7 +10,7 @@ export generate_data_and_ptrs
 Given the faces on the boundary of each cell,
 find the cells around each face.
 """
-function face_to_cells(
+function generate_face_to_cells(
   cell_to_faces_data::AbstractVector{<:Integer},
   cell_to_faces_ptrs::AbstractVector{<:Integer},
   nfaces = maximum(cell_to_faces_data))
@@ -23,7 +23,7 @@ and, for each cell type, the local vertices on
 the boundary of each local face, returns the faces
 on the boundary of each cell
 """
-function cell_to_faces(
+function generate_cell_to_faces(
   cell_to_vertices_data::AbstractVector{<:Integer},
   cell_to_vertices_ptrs::AbstractVector{<:Integer},
   ctype_to_lface_to_lvertices_data::AbstractVector{<:AbstractVector{<:Integer}},
