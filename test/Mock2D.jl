@@ -41,6 +41,9 @@ quad_to_lface_to_lvertices_ptrs = [1,3,5,7,9]
 tri_to_lface_to_lvertices_data = [1,2,1,3,2,3]
 tri_to_lface_to_lvertices_ptrs = [1,3,5,7]
 
+quad_to_lface_to_ftype = [1,1,1,1]
+tri_to_lface_to_ftype = [2,2,2]
+
 quad = 1
 tri = 2
 cell_to_ctype = [quad, tri, tri, quad, quad]
@@ -50,4 +53,8 @@ ctype_to_lface_to_lvertices_data = [
 
 ctype_to_lface_to_lvertices_ptrs = [
   quad_to_lface_to_lvertices_ptrs, tri_to_lface_to_lvertices_ptrs]
+
+ctype_to_lface_to_ftype = [quad_to_lface_to_ftype, tri_to_lface_to_ftype]
+
+face_to_ftype = [1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1]
 

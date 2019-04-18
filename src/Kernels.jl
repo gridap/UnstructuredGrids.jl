@@ -2,6 +2,7 @@ module Kernels
 
 export generate_face_to_cells
 export generate_cell_to_faces
+export generate_face_to_ftype
 export rewind_ptrs!
 export length_to_ptrs!
 export generate_data_and_ptrs
@@ -39,6 +40,20 @@ function generate_cell_to_faces(
     cell_to_ctype,
     vertex_to_cells_data,
     vertex_to_cells_ptrs)
+end
+
+function generate_face_to_ftype(
+  cell_to_faces_data::AbstractVector{<:Integer},
+  cell_to_faces_ptrs::AbstractVector{<:Integer},
+  cell_to_ctype::AbstractVector{<:Integer},
+  ctype_to_lface_to_ftype::AbstractVector{<:AbstractVector{<:Integer}},
+  nfaces::Int=maximum(cell_to_faces_data))
+  _face_to_ftype(
+    cell_to_faces_data,
+    cell_to_faces_ptrs,
+    cell_to_ctype,
+    ctype_to_lface_to_ftype,
+    nfaces)
 end
 
 """
@@ -539,6 +554,47 @@ function _find_eq(v,vertices_scratch)
     end
   end
   return false
+end
+
+function _face_to_ftype(
+  cell_to_faces_data,
+  cell_to_faces_ptrs,
+  cell_to_ctype,
+  ctype_to_lface_to_ftype,
+  nfaces)
+  face_to_ftype = fill(UNSET,nfaces)
+  _face_to_ftype_fill!(
+    face_to_ftype,
+    cell_to_faces_data,
+    cell_to_faces_ptrs,
+    cell_to_ctype,
+    ctype_to_lface_to_ftype)
+  face_to_ftype
+end
+
+function _face_to_ftype_fill!(
+  face_to_ftype,
+  cell_to_faces_data,
+  cell_to_faces_ptrs,
+  cell_to_ctype,
+  ctype_to_lface_to_ftype)
+
+  ncells = length(cell_to_ctype)
+  for cell in 1:ncells
+    ctype = cell_to_ctype[cell]
+    lface_to_ftype = ctype_to_lface_to_ftype[ctype]
+    a = cell_to_faces_ptrs[cell]-1
+    nlfaces = cell_to_faces_ptrs[cell+1] - (a + 1)
+    for lface in 1:nlfaces
+      face = cell_to_faces_data[a+lface]
+      if face_to_ftype[face] != UNSET
+        continue
+      end
+      ftype = lface_to_ftype[lface]
+      face_to_ftype[face] = ftype
+    end
+  end
+
 end
 
 

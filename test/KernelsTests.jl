@@ -45,4 +45,12 @@ _cell_to_faces_data, _cell_to_faces_ptrs = generate_cell_to_faces(
 @test cell_to_faces_data == _cell_to_faces_data
 @test cell_to_faces_ptrs == _cell_to_faces_ptrs
 
+_face_to_ftype = generate_face_to_ftype(
+  cell_to_faces_data,
+  cell_to_faces_ptrs,
+  cell_to_ctype,
+  ctype_to_lface_to_ftype)
+
+@test face_to_ftype == _face_to_ftype
+
 end # module KernelsTests
