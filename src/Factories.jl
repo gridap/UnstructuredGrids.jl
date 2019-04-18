@@ -17,50 +17,37 @@ end
 
 # Helpers
 
-points = zeros(0,1)
-cells = [Int[]]
-celltypes = Int[]
-refcells = Vector{RefCell}(undef,0)
-vtkid = 1
-vtknodes = [1]
+const SEGMENT = RefCell(
+  points = Float64[ -1 1; ],
+  cells = [[1,],[2,]],
+  celltypes = [1,1],
+  refcells = [VERTEX],
+  vtkid = 3,
+  vtknodes = [1,2])
 
-const VERTEX = RefCell(points,cells,celltypes,refcells,vtkid,vtknodes)
+const TRIANGLE = RefCell(
+  points = Float64[ 0 1 0; 0 0 1],
+  cells = [[1,2],[2,3],[3,1]],
+  celltypes = [1,1,1],
+  refcells = [SEGMENT],
+  vtkid = 5,
+  vtknodes = [1,2,3])
 
-points = Float64[ -1 1; ]
-cells = [[1,],[2,]]
-celltypes = [1,1]
-refcells = [VERTEX]
-vtkid = 3
-vtknodes = [1,2]
+const SQUARE = RefCell(
+  points = Float64[ -1 1 -1 1; -1 -1 1 1],
+  cells = [[1,2],[3,4],[1,3],[2,4]],
+  celltypes = [1,1,1,1],
+  refcells = [SEGMENT],
+  vtkid = 9,
+  vtknodes = [1,2,4,3])
 
-const SEGMENT = RefCell(points,cells,celltypes,refcells,vtkid,vtknodes)
-
-points = Float64[ 0 1 0; 0 0 1]
-cells = [[1,2],[2,3],[3,1]]
-celltypes = [1,1,1]
-refcells = [SEGMENT]
-vtkid = 5
-vtknodes = [1,2,3]
-
-const TRIANGLE = RefCell(points,cells,celltypes,refcells,vtkid,vtknodes)
-
-points = Float64[ -1 1 -1 1; -1 -1 1 1]
-cells = [[1,2],[3,4],[1,3],[2,4]]
-celltypes = [1,1,1,1]
-refcells = [SEGMENT]
-vtkid = 9
-vtknodes = [1,2,4,3]
-
-const SQUARE = RefCell(points,cells,celltypes,refcells,vtkid,vtknodes)
-
-points = Float64[ -1 1 -1 1 -1 1 -1 1; -1 -1 1 1 -1 -1 1 1; -1 -1 -1 -1 1 1 1 1]
-cells = [[1,2,3,4],[5,6,7,8],[1,2,5,6],[3,4,7,8],[1,3,5,7],[2,4,6,8]]
-celltypes = [1,1,1,1,1,1]
-refcells = [SQUARE]
-vtkid = 12
-vtknodes = [1,2,4,3,5,6,8,7]
-
-const HEXAHEDRON = RefCell(points,cells,celltypes,refcells,vtkid,vtknodes)
+const HEXAHEDRON = RefCell(
+  points = Float64[ -1 1 -1 1 -1 1 -1 1; -1 -1 1 1 -1 -1 1 1; -1 -1 -1 -1 1 1 1 1],
+  cells = [[1,2,3,4],[5,6,7,8],[1,2,5,6],[3,4,7,8],[1,3,5,7],[2,4,6,8]],
+  celltypes = [1,1,1,1,1,1],
+  refcells = [SQUARE],
+  vtkid = 12,
+  vtknodes = [1,2,4,3,5,6,8,7])
 
 function _cartesian_grid(domain,partition)
   refcell = _cartesian_grid_refcell(partition)

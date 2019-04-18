@@ -5,6 +5,7 @@ using UnstructuredGrids.Kernels: generate_data_and_ptrs
 export UGrid
 export RefCell
 export Grid
+export VERTEX
 export gridpoints, gridcells, celltypes, refcells
 export vtkid, vtknodes
 import Base: ==
@@ -39,7 +40,7 @@ const Grid = Union{UGrid,RefCell}
 
 # Convenience constructors
 
-function RefCell(
+function RefCell(;
   points::Array{Float64,2},
   cells::Vector{Vector{Int}},
   celltypes::Vector{Int},
@@ -70,6 +71,16 @@ function GridData(points,cells::Vector{Vector{Int}},celltypes)
   co = Connections(cells)
   GridData(points,co,celltypes)
 end
+
+# Definition of vertex
+
+const VERTEX = RefCell(
+  points = zeros(0,1),
+  cells = [Int[]],
+  celltypes = Int[],
+  refcells = Vector{RefCell}(undef,0),
+  vtkid = 1,
+  vtknodes = [1])
 
 # Behavior
 
