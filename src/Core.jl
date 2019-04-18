@@ -70,8 +70,31 @@ function UGrid(
   celltypes::Vector{Int},
   refcells::Vector{RefCell})
   cells = Connections(cellsdata,cellsptrs)
+  UGrid(points,cells,celltypes,refcells)
+end
+
+function UGrid(
+  points::Array{Float64,2},
+  cells::Connections,
+  celltypes::Vector{Int},
+  refcells::Vector{RefCell})
   data = GridData(points,cells,celltypes)
   UGrid(data,refcells)
+end
+
+function UGrid(grid::Grid;dim::Int,graph::GridGraph=GridGraph(grid))
+  point_to_coords = gridpoints(grid)
+  cell_to_ctype = celltypes(grid)
+  cell_to_vertices = connections(grid)
+  maxdim = graph.maxdim
+  cell_to_faces = connections(graph,from=maxdim,to=dim)
+  ctype_to_refcell = graph.dim_to_refcells[dim]
+  ftype_to_refface, ctype_to_lface_to_ftype = _prepare_ftypes(ctype_to_refcell)
+  face_to_ftype = _generate_face_to_ftype(
+    cell_to_faces, cell_to_ctype, ctype_to_lface_to_ftype)
+  face_to_vertices = _generate_face_to_vertices(
+    cell_to_vertices, cell_to_faces, cell_to_ctype, ctype_to_refcell)
+  UGrid(point_to_coords, face_to_vertices, face_to_ftype, ftype_to_refface)
 end
 
 function Connections(c::Vector{Vector{Int}})
@@ -91,6 +114,8 @@ function GridGraph(grid::Grid)
   dim_to_refcells = Dict{Int,Vector{RefCell}}()
   # TODO Don't like to extract this from points since
   # in some situations points will not be set
+  # WARNING!! this does not work when the dimension of the
+  # cells is different from the points
   d = size(gridpoints(grid),1)
   dim_to_refcells[d-1] = refcells(grid)
   _gridgraph(d,cell_to_vertices,vertex_to_cells,cell_to_ctype,dim_to_refcells)
@@ -216,6 +241,87 @@ function _generate_cell_to_faces(
     vertex_to_cells.ptrs)
 
   Connections(data,ptrs)
+
+end
+
+function _generate_face_to_vertices(
+  cell_to_vertices::Connections,
+  cell_to_faces::Connections,
+  cell_to_ctype::Vector{Int},
+  ctype_to_refcell::Vector{RefCell})
+  _generate_face_to_vertices(
+    cell_to_vertices,
+    cell_to_faces,
+    cell_to_ctype,
+    [ connections(refcell) for refcell in ctype_to_refcell])
+end
+
+function _generate_face_to_vertices(
+  cell_to_vertices::Connections,
+  cell_to_faces::Connections,
+  cell_to_ctype::Vector{Int},
+  ctype_to_lface_to_lvertices::Vector{Connections})
+  data, ptrs = generate_face_to_vertices(
+    cell_to_vertices.data,
+    cell_to_vertices.ptrs,
+    cell_to_faces.data,
+    cell_to_faces.ptrs,
+    cell_to_ctype,
+    [ c.data for c in ctype_to_lface_to_lvertices ],
+    [ c.ptrs for c in ctype_to_lface_to_lvertices ])
+  Connections(data,ptrs)
+end
+
+function _generate_face_to_ftype(
+  cell_to_faces::Connections,
+  cell_to_ctype::Vector{Int},
+  ctype_to_lface_to_ftype::Vector{Vector{Int}})
+  generate_face_to_ftype(
+    cell_to_faces.data,
+    cell_to_faces.ptrs,
+    cell_to_ctype,
+    ctype_to_lface_to_ftype)
+end
+
+function _prepare_ftypes(ctype_to_refcell)
+
+  i_to_refface = Vector{RefCell}(undef,0)
+  nctypes = length(ctype_to_refcell)
+  ctype_to_lftype_to_i = Vector{Vector{Int}}(undef,nctypes)
+
+  i = 1
+  for (ctype,refcell) in enumerate(ctype_to_refcell)
+    lftype_to_refface = refcells(refcell)
+    lftype_to_i = Vector{Int}(undef,length(lftype_to_refface))
+    for (lftype,refface) in enumerate(lftype_to_refface)
+      push!(i_to_refface,refface)
+      lftype_to_i[lftype] = i
+      i +=1
+    end
+    ctype_to_lftype_to_i[ctype] = lftype_to_i
+  end
+
+  ftype_to_refface = unique(i_to_refface)
+  i_to_ftype = indexin(i_to_refface,ftype_to_refface)
+
+  ctype_to_lftype_to_ftype = copy(ctype_to_lftype_to_i)
+  for ctype in 1:length(ctype_to_lftype_to_i)
+    for lftype in 1:length(ctype_to_lftype_to_i[ctype])
+      i = ctype_to_lftype_to_i[ctype][lftype]
+      ftype = i_to_ftype[i]
+      ctype_to_lftype_to_ftype[ctype][lftype] = ftype
+    end
+  end
+
+  ctype_to_lface_to_ftype = Vector{Vector{Int}}(undef,nctypes)
+  for (ctype,refcell) in enumerate(ctype_to_refcell)
+    lface_to_lftype = celltypes(refcell)
+    lftype_to_ftype = ctype_to_lftype_to_ftype[ctype]
+    lface_to_ftype = lftype_to_ftype[lface_to_lftype]
+    ctype_to_lface_to_ftype[ctype] = lface_to_ftype
+  end
+
+  (ftype_to_refface, ctype_to_lface_to_ftype)
 
 end
 
