@@ -147,7 +147,7 @@ vtknodes(v::VtkData) = v.vtknodes
 
 struct RefCell{
   C<:AbstractVector{<:AbstractCellData},
-  R<:AbstractVector{<:AbstractVector{<:AbstractRefCell}},
+  R<:AbstractVector{<:AbstractRefCell},
   I<:Integer,
   P<:AbstractPointData,
   V<:AbstractVtkData} <: AbstractRefCell
@@ -170,20 +170,20 @@ vtkdata(r::RefCell) = r.vtkdata
 
 function RefCell(;
   ndims::Integer,
-  dim_to_faces::AbstractVector{<:AbstractVector{<:AbstractVector{<:Integer}}},
-  dim_to_reffaces::AbstractVector{<:AbstractVector{<:AbstractRefCell}} = fill(RefCell[],ndims),
-  dim_to_facetypes::AbstractVector{<:AbstractVector{<:Integer}} = fill(Int[],ndims),
+  faces::AbstractVector{<:AbstractVector{<:AbstractVector{<:Integer}}},
+  reffaces::AbstractVector{<:AbstractRefCell} = Vector{RefCell}(undef,0),
+  facetypes::AbstractVector{<:AbstractVector{<:Integer}} = fill(Int[],ndims),
   points::AbstractArray{<:Number,2} = zeros(ndims,0),
   vtkid::Integer = UNSET,
   vtknodes::AbstractVector{<:Integer} = Int[])
-  @assert ndims-1 == length(dim_to_faces)
-  cdata = Vector{CellData}(undef,ndims-1)
-  for dim in 1:(ndims-1)
-    faces = dim_to_faces[dim]
-    facetypes = dim_to_facetypes[dim]
-    cdata[dim] = CellData(faces,facetypes)
+  @assert ndims == length(faces)
+  cdata = Vector{CellData}(undef,ndims)
+  for dim in 1:ndims
+    _faces = faces[dim]
+    _facetypes = facetypes[dim]
+    cdata[dim] = CellData(_faces,_facetypes)
   end
-  rfaces = dim_to_reffaces
+  rfaces = reffaces
   ndims
   pdata = PointData(points)
   vtkdata = VtkData(vtkid,vtknodes)
@@ -219,6 +219,11 @@ ndims(g::GridGraph) = g.ndims
 connections(g::GridGraph,dim::Integer) = g.conn[dim]
 
 dualconnections(g::GridGraph,dim::Integer) = g.dualconn[dim]
+
+# Definition of vertex
+
+const VERTEX = RefCell(
+  ndims = 0, faces = fill([Int[]],0), vtkid = 1, vtknodes = [1] )
 
 end # module Core
 
