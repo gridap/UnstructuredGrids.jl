@@ -1,7 +1,7 @@
 module VTKTests
 
 using Test
-using UnstructuredGrids
+using UnstructuredGrids.VTK
 using UnstructuredGrids.Factories
 
 d = mktempdir()

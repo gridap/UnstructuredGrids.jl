@@ -7,6 +7,24 @@ import Base: ndims
 import Base: ==
 import Base: show
 
+export AbstractRefCell
+export AbstractGrid
+export AbstractConnections
+export AbstractGridGraph
+export RefCell
+export Grid
+export Connections
+export GridGraph
+export VERTEX
+export coordinates
+export connections
+export celltypes
+export list
+export ptrs
+export vtkid
+export vtknodes
+export refcells
+
 # Interfaces
 
 abstract type AbstractConnections end
@@ -62,6 +80,10 @@ connections(refcell::AbstractRefCell,dim::Integer) = connections(celldata(refcel
 
 celltypes(refcell::AbstractRefCell,dim::Integer) = celltypes(celldata(refcell,dim))
 
+vtkid(r::AbstractRefCell) = vtkid(vtkdata(r))
+
+vtknodes(r::AbstractRefCell) = vtknodes(vtkdata(r))
+
 abstract type AbstractGrid end
 
 celldata(::AbstractGrid)::AbstractCellData = @abstractmethod
@@ -75,6 +97,16 @@ coordinates(grid::AbstractGrid) = coordinates(pointdata(grid))
 connections(grid::AbstractGrid) = connections(celldata(grid))
 
 celltypes(grid::AbstractGrid) = celltypes(celldata(grid))
+
+function ndims(grid::AbstractGrid)
+  rcs = refcells(grid)
+  rc = rcs[1]
+  d = ndims(rc)
+  for rc2 in rcs
+    @assert d == ndims(rc2)
+  end
+  d
+end
 
 abstract type AbstractGridGraph end
 
@@ -158,9 +190,9 @@ struct RefCell{
   vtkdata::V
 end
 
-celldata(r::RefCell,dim::Integer) = r.cdata
+celldata(r::RefCell,dim::Integer) = r.cdata[dim]
 
-reffaces(r::RefCell,dim::Integer) = r.rfaces
+reffaces(r::RefCell,dim::Integer) = r.rfaces[dim]
 
 ndims(r::RefCell)::Integer = r.ndims
 
@@ -205,6 +237,18 @@ refcells(g::Grid) = g.rcells
 
 pointdata(g::Grid) = g.pdata
 
+function Grid(
+  points::AbstractArray{<:Number,2},
+  celllist::AbstractVector{<:Integer},
+  cellptrs::AbstractVector{<:Integer},
+  celltypes::AbstractVector{<:Integer},
+  refcells::AbstractVector{<:AbstractRefCell})
+  c = Connections(celllist,cellptrs)
+  cdata = CellData(c,celltypes)
+  pdata = PointData(points)
+  Grid(cdata,refcells,pdata)
+end
+
 struct GridGraph{
   I<:Integer,
   C<:AbstractVector{<:AbstractConnections},
@@ -216,14 +260,74 @@ end
 
 ndims(g::GridGraph) = g.ndims
 
-connections(g::GridGraph,dim::Integer) = g.conn[dim]
+connections(g::GridGraph,dim::Integer) = g.conn[dim+1]
 
-dualconnections(g::GridGraph,dim::Integer) = g.dualconn[dim]
+dualconnections(g::GridGraph,dim::Integer) = g.dualconn[dim+1]
+
+function GridGraph(grid::AbstractGrid)
+  dim = ndims(grid)
+  conn = Vector{Connections}(undef,dim)
+  dualconn = Vector{Connections}(undef,dim)
+  cell_to_vertices = connections(grid)
+  vertex_to_cells = _generate_face_to_cells(cell_to_vertices)
+  conn[0+1] = cell_to_vertices
+  dualconn[0+1] = vertex_to_cells
+  cell_to_ctype = celltypes(grid)
+  ctype_to_refcell = refcells(grid)
+  for d in 1:dim-1
+    conn[d+1] = _generate_cell_to_faces(
+      dim, cell_to_vertices, vertex_to_cells, cell_to_ctype, ctype_to_refcell)
+    dualconn[d+1] = _generate_face_to_cells(conn[d+1])
+  end
+  GridGraph(dim,conn,dualconn)
+end
 
 # Definition of vertex
 
 const VERTEX = RefCell(
   ndims = 0, faces = fill([Int[]],0), vtkid = 1, vtknodes = [1] )
+
+# Helpers
+
+function _generate_face_to_cells(c::AbstractConnections)
+  _data, _ptrs = generate_face_to_cells(list(c),ptrs(c))
+  Connections(_data,_ptrs)
+end
+
+function _generate_cell_to_faces(
+  dim::Integer,
+  cell_to_vertices::AbstractConnections,
+  vertex_to_cells::AbstractConnections,
+  cell_to_ctype::Vector{<:Integer},
+  ctype_to_refcell::Vector{<:AbstractRefCell})
+
+  _generate_cell_to_faces(
+    cell_to_vertices,
+    vertex_to_cells,
+    cell_to_ctype,
+    [ connections(refcell,dim) for refcell in ctype_to_refcell])
+
+end
+
+function _generate_cell_to_faces(
+  cell_to_vertices::AbstractConnections,
+  vertex_to_cells::AbstractConnections,
+  cell_to_ctype::AbstractVector{<:Integer},
+  ctype_to_lface_to_lvertices::AbstractVector{<:AbstractConnections})
+
+  l, p = generate_cell_to_faces(
+    list(cell_to_vertices),
+    ptrs(cell_to_vertices),
+    [ list(c) for c in ctype_to_lface_to_lvertices ],
+    [ ptrs(c) for c in ctype_to_lface_to_lvertices ],
+    cell_to_ctype,
+    list(vertex_to_cells),
+    ptrs(vertex_to_cells))
+
+  Connections(l,p)
+
+end
+
 
 end # module Core
 

@@ -2,7 +2,10 @@ module Factories
 
 using UnstructuredGrids.Helpers
 using UnstructuredGrids.Kernels
-using UnstructuredGrids.Core
+#using UnstructuredGrids.Core
+using UnstructuredGrids.CoreNew: RefCell
+using UnstructuredGrids.CoreNew: VERTEX
+using UnstructuredGrids.CoreNew: Grid
 
 # **DISCLAIMER**
 # This library is not supposed to be a mesh generator.
@@ -18,34 +21,32 @@ end
 # Helpers
 
 const SEGMENT = RefCell(
-  points = Float64[ -1 1; ],
-  cells = [[1,],[2,]],
-  celltypes = [1,1],
-  refcells = [VERTEX],
+  ndims = 1,
+  faces = [ [[1],[2]] ],
+  reffaces = [ VERTEX ],
+  facetypes = [ [1,1] ],
+  points = [-1 1;],
   vtkid = 3,
-  vtknodes = [1,2])
-
-const TRIANGLE = RefCell(
-  points = Float64[ 0 1 0; 0 0 1],
-  cells = [[1,2],[2,3],[3,1]],
-  celltypes = [1,1,1],
-  refcells = [SEGMENT],
-  vtkid = 5,
-  vtknodes = [1,2,3])
+  vtknodes = [1,2] )
 
 const SQUARE = RefCell(
+  ndims = 2,
+  faces = [ [[1],[2],[3],[4]], [[1,2],[3,4],[1,3],[2,4]] ],
+  reffaces = [ VERTEX, SEGMENT ],
+  facetypes = [ [1,1,1,1], [2,2,2,2] ],
   points = Float64[ -1 1 -1 1; -1 -1 1 1],
-  cells = [[1,2],[3,4],[1,3],[2,4]],
-  celltypes = [1,1,1,1],
-  refcells = [SEGMENT],
   vtkid = 9,
   vtknodes = [1,2,4,3])
 
 const HEXAHEDRON = RefCell(
+  ndims = 3,
+  faces = [
+    [[1],[2],[3],[4],[5],[6],[7],[8]],
+    [[1,2],[3,4],[1,3],[2,4],[5,6],[7,8],[5,7],[6,8],[1,5],[2,6],[3,7],[4,8]],
+    [[1,2,3,4],[5,6,7,8],[1,2,5,6],[3,4,7,8],[1,3,5,7],[2,4,6,8]]],
+  reffaces = [ VERTEX, SEGMENT, SQUARE ],
+  facetypes = [ fill(1,8), fill(2,12), fill(3,6) ],
   points = Float64[ -1 1 -1 1 -1 1 -1 1; -1 -1 1 1 -1 -1 1 1; -1 -1 -1 -1 1 1 1 1],
-  cells = [[1,2,3,4],[5,6,7,8],[1,2,5,6],[3,4,7,8],[1,3,5,7],[2,4,6,8]],
-  celltypes = [1,1,1,1,1,1],
-  refcells = [SQUARE],
   vtkid = 12,
   vtknodes = [1,2,4,3,5,6,8,7])
 
@@ -54,7 +55,7 @@ function _cartesian_grid(domain,partition)
   points, celldata, cellptrs, celltypes, refcells = _cartesian_allocate(partition,refcell)
   _cartesian_fill_points!(points,domain,partition)
   _cartesian_fill_cells!(celldata,partition)
-  UGrid(points,celldata,cellptrs,celltypes,refcells)
+  Grid(points,celldata,cellptrs,celltypes,refcells)
 end
 
 function _cartesian_allocate(partition::NTuple{D,Int},refcell) where D

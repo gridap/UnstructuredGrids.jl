@@ -1,37 +1,58 @@
 module CoreNewTests
 
-using UnstructuredGrids.CoreNew: RefCell
-using UnstructuredGrids.CoreNew: VERTEX
-using UnstructuredGrids.CoreNew: AbstractRefCell
+using Test
+using UnstructuredGrids.CoreNew
+using UnstructuredGrids.Factories
 
-const SEGMENT = RefCell(
-  ndims = 1,
-  faces = [ [[1],[2]] ],
-  reffaces = [ VERTEX ],
-  facetypes = [ [1,1] ],
-  points = [-1 1;],
-  vtkid = 3,
-  vtknodes = [1,2] )
+c = Connections([[1,2,6,3,],[1,4,4],[1]])
+s = """
+    1 -> [1, 2, 6, 3]
+    2 -> [1, 4, 4]
+    3 -> [1]
+    """
+@test s == string(c)
 
-const SQUARE = RefCell(
-  ndims = 2,
-  faces = [ [[1],[2],[3],[4]], [[1,2],[3,4],[1,3],[2,4]] ],
-  reffaces = [ VERTEX, SEGMENT ],
-  facetypes = [ [1,1,1,1], [2,2,2,2] ],
-  points = Float64[ -1 1 -1 1; -1 -1 1 1],
-  vtkid = 9,
-  vtknodes = [1,2,4,3])
+grid = generate(domain=(0,1,-1,0),partition=(2,2))
 
-const HEXAHEDRON = RefCell(
-  ndims = 3,
-  faces = [
-    [[1],[2],[3],[4],[5],[6],[7],[8]],
-    [[1,2],[3,4],[1,3],[2,4],[5,6],[7,8],[5,7],[6,8],[1,5],[2,6],[3,7],[4,8]],
-    [[1,2,3,4],[5,6,7,8],[1,2,5,6],[3,4,7,8],[1,3,5,7],[2,4,6,8]]],
-  reffaces = [ VERTEX, SEGMENT, SQUARE ],
-  facetypes = [ fill(1,8), fill(2,12), fill(3,6) ],
-  points = Float64[ -1 1 -1 1 -1 1 -1 1; -1 -1 1 1 -1 -1 1 1; -1 -1 -1 -1 1 1 1 1],
-  vtkid = 12,
-  vtknodes = [1,2,4,3,5,6,8,7])
+graph = GridGraph(grid)
+
+c = connections(graph,from=2,to=1)
+
+l = [1, 2, 3, 4, 5, 6, 4, 7, 2, 8, 9, 10, 6, 11, 10, 12]
+p = [1, 5, 9, 13, 17]
+@test list(c) == l
+@test ptrs(c) == p
+
+c = connections(graph,from=2,to=0)
+
+l = [1, 2, 4, 5, 2, 3, 5, 6, 4, 5, 7, 8, 5, 6, 8, 9]
+p = [1, 5, 9, 13, 17]
+@test list(c) == l
+@test ptrs(c) == p
+
+c = connections(graph,from=1,to=2)
+
+l = [1, 1, 3, 1, 1, 2, 2, 2, 4, 2, 3, 3, 3, 4, 4, 4]
+p = [1, 2, 4, 5, 7, 8, 10, 11, 12, 13, 15, 16, 17]
+@test list(c) == l
+@test ptrs(c) == p
+
+c = connections(graph,from=0,to=2)
+
+l = [1, 1, 2, 2, 1, 3, 1, 2, 3, 4, 2, 4, 3, 3, 4, 4]
+p = [1, 2, 4, 5, 7, 11, 13, 14, 16, 17]
+@test list(c) == l
+@test ptrs(c) == p
+
+grid = generate(domain=(0,1,-1,0,2,3),partition=(2,4,3))
+
+graph = GridGraph(grid)
+
+c = connections(graph,from=3,to=2)
+c = connections(graph,from=3,to=1)
+c = connections(graph,from=3,to=0)
+c = connections(graph,from=2,to=3)
+c = connections(graph,from=1,to=3)
+c = connections(graph,from=0,to=3)
 
 end # module CoreNewTests

@@ -8,12 +8,12 @@ using WriteVTK.VTKCellTypes: VTK_QUAD
 using WriteVTK.VTKCellTypes: VTK_TETRA
 using WriteVTK.VTKCellTypes: VTK_HEXAHEDRON
 
-using UnstructuredGrids.Core
+using UnstructuredGrids.CoreNew
 
 export writevtk
 
-function writevtk(grid::Grid,filebase,celldata=Dict(),pointdata=Dict())
-  points = gridpoints(grid)
+function writevtk(grid::AbstractGrid,filebase,celldata=Dict(),pointdata=Dict())
+  points = coordinates(grid)
   cells = _vtkcells(grid)
   vtkfile = vtk_grid(filebase, points, cells, compress=false)
   for (k,v) in celldata
@@ -28,7 +28,8 @@ end
 function _vtkcells(grid::Grid)
   vtkid_to_vtktype = _vtkcelltypedict()
   cell_to_ctype = celltypes(grid)
-  cell_to_points_data, cell_to_points_ptrs = gridcells(grid)
+  cell_to_points_data = list(connections(grid))
+  cell_to_points_ptrs = ptrs(connections(grid))
   ctype_to_refcell = refcells(grid)
   ctype_to_vtkid = [ vtkid(rc) for rc in ctype_to_refcell ]
   ctype_to_vtknodes = [ vtknodes(rc) for rc in ctype_to_refcell ]
