@@ -107,8 +107,13 @@ list(c::Connections) = c.list
 
 ptrs(c::Connections) = c.ptrs
 
+function Connections(c::AbstractVector{<:AbstractVector{<:Integer}})
+  list, ptrs = generate_data_and_ptrs(c)
+  Connections(list,ptrs)
+end
+
 struct CellData{
-  A<AbstractConnections,
+  A<:AbstractConnections,
   B<:AbstractVector{<:Integer}} <: AbstractCellData
   connections::A
   celltypes::B
@@ -117,6 +122,13 @@ end
 connections(d::CellData) = d.connections
 
 celltypes(d::CellData) = d.celltypes
+
+function CellData(
+  connections::AbstractVector{<:AbstractVector{<:Integer}},
+  celltypes::AbstractVector{<:Integer})
+  c = Connections(connections)
+  CellData(c,celltypes)
+end
 
 struct PointData{P<:AbstractArray{<:Number,2}} <: AbstractPointData
   coords::P
@@ -155,6 +167,28 @@ ndims(r::RefCell)::Integer = r.ndims
 pointdata(r::RefCell) = r.pdata
 
 vtkdata(r::RefCell) = r.vtkdata
+
+function RefCell(;
+  ndims::Integer,
+  dim_to_faces::AbstractVector{<:AbstractVector{<:AbstractVector{<:Integer}}},
+  dim_to_reffaces::AbstractVector{<:AbstractVector{<:AbstractRefCell}} = fill(RefCell[],ndims),
+  dim_to_facetypes::AbstractVector{<:AbstractVector{<:Integer}} = fill(Int[],ndims),
+  points::AbstractArray{<:Number,2} = zeros(ndims,0),
+  vtkid::Integer = UNSET,
+  vtknodes::AbstractVector{<:Integer} = Int[])
+  @assert ndims-1 == length(dim_to_faces)
+  cdata = Vector{CellData}(undef,ndims-1)
+  for dim in 1:(ndims-1)
+    faces = dim_to_faces[dim]
+    facetypes = dim_to_facetypes[dim]
+    cdata[dim] = CellData(faces,facetypes)
+  end
+  rfaces = dim_to_reffaces
+  ndims
+  pdata = PointData(points)
+  vtkdata = VtkData(vtkid,vtknodes)
+  RefCell(cdata,rfaces,ndims,pdata,vtkdata)
+end
 
 struct Grid{
   C<:AbstractCellData,

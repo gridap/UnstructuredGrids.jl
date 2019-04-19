@@ -7,6 +7,7 @@ export generate_face_to_vertices
 export rewind_ptrs!
 export length_to_ptrs!
 export generate_data_and_ptrs
+export UNSET
 
 """
 Given the faces on the boundary of each cell,
