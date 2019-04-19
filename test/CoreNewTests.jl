@@ -3,6 +3,7 @@ module CoreNewTests
 using Test
 using UnstructuredGrids.CoreNew
 using UnstructuredGrids.Factories
+using UnstructuredGrids.VTK
 
 c = Connections([[1,2,6,3,],[1,4,4],[1]])
 s = """
@@ -54,5 +55,23 @@ c = connections(graph,from=3,to=0)
 c = connections(graph,from=2,to=3)
 c = connections(graph,from=1,to=3)
 c = connections(graph,from=0,to=3)
+
+grid = generate(domain=(0,1,-1,0),partition=(2,2))
+
+fgrid = Grid(grid,dim=1)
+
+c = connections(fgrid)
+
+l = [1, 2, 4, 5, 1, 4, 2, 5, 2, 3, 5, 6, 3, 6, 7, 8, 4, 7, 5, 8, 8, 9, 6, 9]
+p = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25]
+
+@test list(c) == l
+@test ptrs(c) == p
+
+grid = generate(domain=(0,1,-1,0,2,3),partition=(2,4,3))
+
+fgrid = Grid(grid,dim=2)
+
+fgrid = Grid(grid,dim=1)
 
 end # module CoreNewTests
