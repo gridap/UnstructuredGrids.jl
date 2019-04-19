@@ -219,7 +219,6 @@ function RefCell(;
     cdata[dim] = CellData(_faces,_facetypes)
   end
   rfaces = reffaces
-  ndims
   pdata = PointData(points)
   vtkdata = VtkData(vtkid,vtknodes)
   RefCell(cdata,rfaces,ndims,pdata,vtkdata)
