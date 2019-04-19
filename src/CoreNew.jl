@@ -29,6 +29,7 @@ export refcells
 
 abstract type AbstractConnections end
 
+# TODO I am not sure about such sort names
 list(::AbstractConnections)::AbstractVector{<:Integer} = @abstractmethod
 
 ptrs(::AbstractConnections)::AbstractVector{<:Integer} = @abstractmethod
@@ -140,6 +141,7 @@ list(c::Connections) = c.list
 ptrs(c::Connections) = c.ptrs
 
 function Connections(c::AbstractVector{<:AbstractVector{<:Integer}})
+  # TODO the kernels have to be written in a generic way
   list, ptrs = generate_data_and_ptrs(c)
   Connections(list,ptrs)
 end
@@ -168,6 +170,7 @@ end
 
 coordinates(p::PointData) = p.coords
 
+#TODO do not use tamplates for VtkData
 struct VtkData{I<:Integer,V<:AbstractVector{<:Integer}} <: AbstractVtkData
   vtkid::I
   vtknodes::V
@@ -177,6 +180,7 @@ vtkid(v::VtkData) = v.vtkid
 
 vtknodes(v::VtkData) = v.vtknodes
 
+#TODO do not use tamplates for RefCell
 struct RefCell{
   C<:AbstractVector{<:AbstractCellData},
   R<:AbstractVector{<:AbstractRefCell},
