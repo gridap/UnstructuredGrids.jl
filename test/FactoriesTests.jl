@@ -1,8 +1,7 @@
 module FactoriesTests
 
 using Test
-#using UnstructuredGrids
-using UnstructuredGrids.CoreNew
+using UnstructuredGrids.Core
 using UnstructuredGrids.Factories
 
 grid = generate(domain=(0,1,-1,0),partition=(2,2))

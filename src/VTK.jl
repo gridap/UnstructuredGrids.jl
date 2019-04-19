@@ -8,7 +8,7 @@ using WriteVTK.VTKCellTypes: VTK_QUAD
 using WriteVTK.VTKCellTypes: VTK_TETRA
 using WriteVTK.VTKCellTypes: VTK_HEXAHEDRON
 
-using UnstructuredGrids.CoreNew
+using UnstructuredGrids.Core
 
 export writevtk
 
