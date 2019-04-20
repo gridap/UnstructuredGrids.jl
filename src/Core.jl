@@ -44,6 +44,9 @@ function show(io::IO,c::AbstractConnections)
   end
 end
 
+
+# TODO Most of these abstract types are not necessary
+
 abstract type AbstractCellData end
 
 connections(::AbstractCellData)::AbstractConnections = @abstractmethod
@@ -277,6 +280,13 @@ function Grid(grid::AbstractGrid;dim::Integer)
     dim, cell_to_vertices, cell_to_faces, cell_to_ctype, ctype_to_refcell)
   point_to_coords = coordinates(grid)
   Grid(point_to_coords, face_to_vertices, face_to_ftype, ftype_to_refface)
+end
+
+function Grid(r::RefCell;dim::Integer)
+  cdata = celldata(r,dim)
+  rcells = reffaces(r)
+  pdata = pointdata(r)
+  Grid(cdata,rcells,pdata)
 end
 
 struct GridGraph{

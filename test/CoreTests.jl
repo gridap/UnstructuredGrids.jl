@@ -1,6 +1,7 @@
 module CoreTests
 
 using Test
+using UnstructuredGrids
 using UnstructuredGrids.Core
 using UnstructuredGrids.Factories
 using UnstructuredGrids.VTK
@@ -73,5 +74,13 @@ grid = Grid(domain=(0,1,-1,0,2,3),partition=(2,4,3))
 fgrid = Grid(grid,dim=2)
 
 fgrid = Grid(grid,dim=1)
+
+HEX = UnstructuredGrids.Factories.HEXAHEDRON
+
+grid = Grid(HEX,dim=2)
+
+grid = Grid(HEX,dim=1)
+
+grid = Grid(HEX,dim=0)
 
 end # module CoreTests
