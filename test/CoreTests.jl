@@ -13,7 +13,7 @@ s = """
     """
 @test s == string(c)
 
-grid = generate(domain=(0,1,-1,0),partition=(2,2))
+grid = Grid(domain=(0,1,-1,0),partition=(2,2))
 
 graph = GridGraph(grid)
 
@@ -45,7 +45,7 @@ p = [1, 2, 4, 5, 7, 11, 13, 14, 16, 17]
 @test list(c) == l
 @test ptrs(c) == p
 
-grid = generate(domain=(0,1,-1,0,2,3),partition=(2,4,3))
+grid = Grid(domain=(0,1,-1,0,2,3),partition=(2,4,3))
 
 graph = GridGraph(grid)
 
@@ -56,7 +56,7 @@ c = connections(graph,from=2,to=3)
 c = connections(graph,from=1,to=3)
 c = connections(graph,from=0,to=3)
 
-grid = generate(domain=(0,1,-1,0),partition=(2,2))
+grid = Grid(domain=(0,1,-1,0),partition=(2,2))
 
 fgrid = Grid(grid,dim=1)
 
@@ -68,7 +68,7 @@ p = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25]
 @test list(c) == l
 @test ptrs(c) == p
 
-grid = generate(domain=(0,1,-1,0,2,3),partition=(2,4,3))
+grid = Grid(domain=(0,1,-1,0,2,3),partition=(2,4,3))
 
 fgrid = Grid(grid,dim=2)
 

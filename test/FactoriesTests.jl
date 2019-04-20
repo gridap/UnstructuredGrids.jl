@@ -4,7 +4,7 @@ using Test
 using UnstructuredGrids.Core
 using UnstructuredGrids.Factories
 
-grid = generate(domain=(0,1,-1,0),partition=(2,2))
+grid = Grid(domain=(0,1,-1,0),partition=(2,2))
 
 @test isa(grid,Grid)
 
@@ -19,7 +19,7 @@ cptrs = [1, 5, 9, 13, 17]
 @test ptrs(connections(grid)) == cptrs
 @test celltypes(grid) == ones(Int,length(cptrs)-1)
 
-grid = generate(domain=(0,1,-1,0,2,4),partition=(1,2,3))
+grid = Grid(domain=(0,1,-1,0,2,4),partition=(1,2,3))
 
 p = [0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0;
      -1.0 -1.0 -0.5 -0.5 0.0 0.0 -1.0 -1.0 -0.5 -0.5 0.0 0.0 -1.0 -1.0 -0.5 -0.5 0.0 0.0 -1.0 -1.0 -0.5 -0.5 0.0 0.0;

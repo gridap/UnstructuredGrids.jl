@@ -9,9 +9,9 @@ using UnstructuredGrids.Core
 # The following mesh generation routines are mainly for
 # testing purposes.
 
-export generate
+import UnstructuredGrids.Core: Grid
 
-function generate(;domain,partition)
+function Grid(;domain,partition)
   _cartesian_grid(domain,partition)
 end
 
