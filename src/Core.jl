@@ -32,7 +32,6 @@ export pointdata
 
 abstract type AbstractConnections end
 
-# TODO I am not sure about such sort names
 list(::AbstractConnections)::AbstractVector{<:Integer} = @abstractmethod
 
 ptrs(::AbstractConnections)::AbstractVector{<:Integer} = @abstractmethod
@@ -48,8 +47,6 @@ function show(io::IO,c::AbstractConnections)
   end
 end
 
-
-# TODO Most of these abstract types are not necessary
 
 abstract type AbstractCellData end
 
@@ -274,14 +271,12 @@ function Grid(
 end
 
 function Grid(grid::AbstractGrid;dim::Integer)
-  # TODO: this might be computed already in some contexts
   cell_to_vertices = connections(grid)
   vertex_to_cells = _generate_face_to_cells(cell_to_vertices)
   cell_to_ctype = celltypes(grid)
   ctype_to_refcell = refcells(grid)
   cell_to_faces = _generate_cell_to_faces(
       dim, cell_to_vertices, vertex_to_cells, cell_to_ctype, ctype_to_refcell)
-  # until here
   ftype_to_refface, ctype_to_lface_to_ftype = _prepare_ftypes(dim,ctype_to_refcell)
   face_to_ftype = _generate_face_to_ftype(
     cell_to_faces, cell_to_ctype, ctype_to_lface_to_ftype)

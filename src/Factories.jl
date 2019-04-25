@@ -26,7 +26,6 @@ const SEGMENT = RefCell(
   vtkid = 3,
   vtknodes = [1,2] )
 
-# TODO I am not sure if the user has to provide the vertices...
 const SQUARE = RefCell(
   ndims = 2,
   faces = [ [[1],[2],[3],[4]], [[1,2],[3,4],[1,3],[2,4]] ],
