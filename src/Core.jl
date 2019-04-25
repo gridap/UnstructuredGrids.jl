@@ -158,10 +158,11 @@ function append(a::Connections{A,B},b::Connections{A,B}) where {A,B}
 end
 
 struct CellData{
-  A<:AbstractConnections,
-  B<:AbstractVector{<:Integer}} <: AbstractCellData
-  connections::A
-  celltypes::B
+  L<:AbstractVector{<:Integer},
+  P<:AbstractVector{<:Integer},
+  C<:AbstractVector{<:Integer}} <: AbstractCellData
+  connections::Connections{L,P}
+  celltypes::C
 end
 
 connections(d::CellData) = d.connections
@@ -175,7 +176,7 @@ function CellData(
   CellData(c,celltypes)
 end
 
-function append(a::CellData{A,B},b::CellData{A,B}) where {A,B}
+function append(a::CellData{A,B,C},b::CellData{A,B,C}) where {A,B,C}
   c = append(connections(a),connections(b))
   t = vcat(celltypes(a),celltypes(b))
   CellData(c,t)
@@ -197,7 +198,7 @@ vtkid(v::VtkData) = v.vtkid
 vtknodes(v::VtkData) = v.vtknodes
 
 struct RefCell <: AbstractRefCell
-  cdata::Vector{CellData{Connections{Vector{Int},Vector{Int}},Vector{Int}}}
+  cdata::Vector{CellData{Vector{Int},Vector{Int},Vector{Int}}}
   rfaces::Vector{RefCell}
   ndims::Int
   pdata::PointData{Array{Float64,2}}
