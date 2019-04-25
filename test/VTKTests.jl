@@ -25,7 +25,7 @@ fgrid = Grid(grid,dim=1)
 
 writevtk(fgrid,f)
 
-writevtk(HEXAHEDRON,"hex")
+writevtk(HEXAHEDRON,f)
 
 rm(d,recursive=true)
 

@@ -26,26 +26,11 @@ function writevtk(grid::AbstractGrid,filebase;celldata=Dict(),pointdata=Dict())
 end
 
 function writevtk(r::AbstractRefCell,filebase)
-  grid = _setup_grid(r)
-  dims = _setup_object_to_dim(grid)
-  writevtk(grid,filebase;celldata=["dim"=>dims])
-end
-
-function _setup_grid(r::RefCell)
-  cdata = celldata(r,0)
-  for d in 1:(ndims(r)-1)
-    cdata = append(cdata,celldata(r,d))
+  for d in 0:(ndims(r)-1)
+    f = "$(filebase)_$d"
+    grid = Grid(r,dim=d)
+    writevtk(grid,f)
   end
-  rcells = reffaces(r)
-  pdata = pointdata(r)
-  Grid(cdata,rcells,pdata)
-end
-
-function _setup_object_to_dim(grid)
-  rcs = refcells(grid)
-  object_to_rc = celltypes(grid)
-  rc_to_dim = [ ndims(rc) for rc in rcs ]
-  rc_to_dim[object_to_rc]
 end
 
 function _vtkcells(grid::Grid)
