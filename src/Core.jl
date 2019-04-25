@@ -23,6 +23,7 @@ export ptrs
 export vtkid
 export vtknodes
 export refcells
+export append
 
 # Interfaces
 
@@ -148,6 +149,12 @@ function Connections(c::AbstractVector{<:AbstractVector{<:Integer}})
   Connections(list,ptrs)
 end
 
+function append(a::Connections{A,B},b::Connections{A,B}) where {A,B}
+  p = append_ptrs(ptrs(a),ptrs(b))
+  l = vcat(list(a),list(b))
+  Connections(l,p)
+end
+
 struct CellData{
   A<:AbstractConnections,
   B<:AbstractVector{<:Integer}} <: AbstractCellData
@@ -165,6 +172,8 @@ function CellData(
   c = Connections(connections)
   CellData(c,celltypes)
 end
+
+
 
 struct PointData{P<:AbstractArray{<:Number,2}} <: AbstractPointData
   coords::P

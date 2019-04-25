@@ -8,6 +8,7 @@ export rewind_ptrs!
 export length_to_ptrs!
 export generate_data_and_ptrs
 export UNSET
+export append_ptrs
 
 """
 Given the faces on the boundary of each cell,
@@ -111,9 +112,29 @@ function generate_data_and_ptrs(vv::Vector{Vector{Int}})
   (data, ptrs)
 end
 
+function append_ptrs(pa::AbstractVector{T},pb::AbstractVector{T}) where T
+  na = length(pa)-1
+  nb = length(pb)-1
+  p = zeros(T,(na+nb+1))
+  _append_count!(p,pa,pb)
+  length_to_ptrs!(p)
+  p
+end
+
 # Helpers
 
 const UNSET = 0
+
+function _append_count!(p,pa,pb)
+  na = length(pa)-1
+  for ca in 1:na
+    p[ca+1] = pa[ca+1] - pa[ca]
+  end
+  nb = length(pb)-1
+  for cb in 1:nb
+    p[cb+1+na] = pb[cb+1] - pb[cb]
+  end
+end
 
 function _generate_data_and_ptrs_fill_ptrs!(ptrs,vv)
   for (i,v) in enumerate(vv)

@@ -65,4 +65,13 @@ _face_to_vertices_data, _face_to_vertices_ptrs = generate_face_to_vertices(
 @test face_to_vertices_data == _face_to_vertices_data
 @test face_to_vertices_ptrs == _face_to_vertices_ptrs
 
+pa = [1,3,5,7,9]
+pb = [1,3,5,7]
+
+pc = append_ptrs(pa,pb)
+
+@test pc == [1, 3, 5, 7, 9, 11, 13, 15]
+
+
+
 end # module KernelsTests
