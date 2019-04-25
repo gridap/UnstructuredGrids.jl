@@ -188,28 +188,21 @@ end
 
 coordinates(p::PointData) = p.coords
 
-#TODO do not use tamplates for VtkData
-struct VtkData{I<:Integer,V<:AbstractVector{<:Integer}} <: AbstractVtkData
-  vtkid::I
-  vtknodes::V
+struct VtkData <: AbstractVtkData
+  vtkid::Int
+  vtknodes::Vector{Int}
 end
 
 vtkid(v::VtkData) = v.vtkid
 
 vtknodes(v::VtkData) = v.vtknodes
 
-#TODO do not use tamplates for RefCell
-struct RefCell{
-  C<:AbstractVector{<:AbstractCellData},
-  R<:AbstractVector{<:AbstractRefCell},
-  I<:Integer,
-  P<:AbstractPointData,
-  V<:AbstractVtkData} <: AbstractRefCell
-  cdata::C
-  rfaces::R
-  ndims::I
-  pdata::P
-  vtkdata::V
+struct RefCell <: AbstractRefCell
+  cdata::Vector{CellData{Connections{Vector{Int},Vector{Int}},Vector{Int}}}
+  rfaces::Vector{RefCell}
+  ndims::Int
+  pdata::PointData{Array{Float64,2}}
+  vtkdata::VtkData
 end
 
 celldata(r::RefCell,dim::Integer) = r.cdata[dim+1]
@@ -223,13 +216,13 @@ pointdata(r::RefCell) = r.pdata
 vtkdata(r::RefCell) = r.vtkdata
 
 function RefCell(;
-  ndims::Integer,
-  faces::AbstractVector{<:AbstractVector{<:AbstractVector{<:Integer}}},
-  reffaces::AbstractVector{<:AbstractRefCell} = Vector{RefCell}(undef,0),
-  facetypes::AbstractVector{<:AbstractVector{<:Integer}} = fill(Int[],ndims),
-  points::AbstractArray{<:Number,2} = zeros(ndims,0),
-  vtkid::Integer = UNSET,
-  vtknodes::AbstractVector{<:Integer} = Int[])
+  ndims::Int,
+  faces::Vector{Vector{Vector{Int}}},
+  reffaces::Vector{RefCell} = Vector{RefCell}(undef,0),
+  facetypes::Vector{Vector{Int}} = fill(Int[],ndims),
+  points::Array{Float64,2} = zeros(ndims,0),
+  vtkid::Int = UNSET,
+  vtknodes::Vector{Int} = Int[])
   @assert ndims == length(faces)
   cdata = Vector{CellData}(undef,ndims)
   for dim in 1:ndims
@@ -281,7 +274,7 @@ function Grid(
 end
 
 function Grid(grid::AbstractGrid;dim::Integer)
-  # TODO: this might computed already in some contexts
+  # TODO: this might be computed already in some contexts
   cell_to_vertices = connections(grid)
   vertex_to_cells = _generate_face_to_cells(cell_to_vertices)
   cell_to_ctype = celltypes(grid)

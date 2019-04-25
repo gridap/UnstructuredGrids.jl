@@ -22,7 +22,7 @@ const SEGMENT = RefCell(
   faces = [ [[1],[2]] ],
   reffaces = [ VERTEX ],
   facetypes = [ [1,1] ],
-  points = [-1 1;],
+  points = Float64[-1 1;],
   vtkid = 3,
   vtknodes = [1,2] )
 
