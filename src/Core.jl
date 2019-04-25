@@ -146,8 +146,7 @@ list(c::Connections) = c.list
 
 ptrs(c::Connections) = c.ptrs
 
-function Connections(c::AbstractVector{<:AbstractVector{<:Integer}})
-  # TODO the kernels have to be written in a generic way
+function Connections(c::Vector{Vector{Int}})
   list, ptrs = generate_data_and_ptrs(c)
   Connections(list,ptrs)
 end

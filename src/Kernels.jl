@@ -152,9 +152,12 @@ function _generate_data_and_ptrs_fill_data!(data,vv)
   end
 end
 
-function _face_to_cells(cell_to_faces_data, cell_to_faces_ptrs, nfaces)
+function _face_to_cells(
+  cell_to_faces_data::AbstractVector{L},
+  cell_to_faces_ptrs::AbstractVector{P},
+  nfaces) where {L,P}
 
-  face_to_cells_ptrs = zeros(Int,nfaces+1)
+  face_to_cells_ptrs = zeros(P,nfaces+1)
 
   _face_to_cells_count!(
     face_to_cells_ptrs, cell_to_faces_data, cell_to_faces_ptrs)
@@ -163,7 +166,7 @@ function _face_to_cells(cell_to_faces_data, cell_to_faces_ptrs, nfaces)
 
   ndata = face_to_cells_ptrs[end]-1
 
-  face_to_cells_data = Vector{Int}(undef,ndata)
+  face_to_cells_data = Vector{L}(undef,ndata)
 
   _face_to_cells_fill!(
     face_to_cells_data, face_to_cells_ptrs,
@@ -209,17 +212,17 @@ function _face_to_cells_fill!(
 end
 
 function _cell_to_faces(
-    cell_to_vertices_data,
-    cell_to_vertices_ptrs,
+    cell_to_vertices_data::AbstractVector{L},
+    cell_to_vertices_ptrs::AbstractVector{P},
     ctype_to_lface_to_lvertices_data,
     ctype_to_lface_to_lvertices_ptrs,
     cell_to_ctype,
     vertex_to_cells_data,
-    vertex_to_cells_ptrs)
+    vertex_to_cells_ptrs) where {L,P}
 
   ncells = length(cell_to_vertices_ptrs) - 1
 
-  cell_to_faces_ptrs = zeros(Int,ncells+1)
+  cell_to_faces_ptrs = zeros(P,ncells+1)
 
   type_to_nlfaces = _type_to_nlfaces(ctype_to_lface_to_lvertices_ptrs)
 
@@ -232,7 +235,7 @@ function _cell_to_faces(
 
   ndata = cell_to_faces_ptrs[end]-1
 
-  cell_to_faces_data = fill(UNSET,ndata)
+  cell_to_faces_data = fill(L(UNSET),ndata)
 
   nvertices = max_nvertices_in_lface(ctype_to_lface_to_lvertices_ptrs)
   vertices = fill(UNSET,nvertices)
@@ -641,16 +644,16 @@ function _face_to_ftype_fill!(
 end
 
 function _face_to_vertices(
-  cell_to_vertices_data,
-  cell_to_vertices_ptrs,
+  cell_to_vertices_data::AbstractVector{L},
+  cell_to_vertices_ptrs::AbstractVector{P},
   cell_to_faces_data,
   cell_to_faces_ptrs,
   cell_to_ctype,
   ctype_to_lface_to_lvertices_data,
   ctype_to_lface_to_lvertices_ptrs,
-  nfaces)
+  nfaces) where {L,P}
 
-  face_to_vertices_ptrs = fill(UNSET,nfaces+1)
+  face_to_vertices_ptrs = fill(P(UNSET),nfaces+1)
 
   _face_to_vertices_count!(
     face_to_vertices_ptrs,
@@ -661,7 +664,7 @@ function _face_to_vertices(
 
   length_to_ptrs!(face_to_vertices_ptrs)
   ndata = face_to_vertices_ptrs[end]-1
-  face_to_vertices_data = fill(UNSET,ndata)
+  face_to_vertices_data = fill(L(UNSET),ndata)
 
   _face_to_vertices_fill!(
     face_to_vertices_data,
