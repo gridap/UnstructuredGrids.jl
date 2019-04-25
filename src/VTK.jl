@@ -12,7 +12,7 @@ using UnstructuredGrids.Core
 
 export writevtk
 
-function writevtk(grid::AbstractGrid,filebase,celldata=Dict(),pointdata=Dict())
+function writevtk(grid::AbstractGrid,filebase;celldata=Dict(),pointdata=Dict())
   points = coordinates(grid)
   cells = _vtkcells(grid)
   vtkfile = vtk_grid(filebase, points, cells, compress=false)
@@ -23,6 +23,29 @@ function writevtk(grid::AbstractGrid,filebase,celldata=Dict(),pointdata=Dict())
     vtk_point_data(vtkfile,v,k)
   end
   outfiles = vtk_save(vtkfile)
+end
+
+function writevtk(r::AbstractRefCell,filebase)
+  grid = _setup_grid(r)
+  dims = _setup_object_to_dim(grid)
+  writevtk(grid,filebase;celldata=["dim"=>dims])
+end
+
+function _setup_grid(r::RefCell)
+  cdata = celldata(r,0)
+  for d in 1:(ndims(r)-1)
+    cdata = append(cdata,celldata(r,d))
+  end
+  rcells = reffaces(r)
+  pdata = pointdata(r)
+  Grid(cdata,rcells,pdata)
+end
+
+function _setup_object_to_dim(grid)
+  rcs = refcells(grid)
+  object_to_rc = celltypes(grid)
+  rc_to_dim = [ ndims(rc) for rc in rcs ]
+  rc_to_dim[object_to_rc]
 end
 
 function _vtkcells(grid::Grid)

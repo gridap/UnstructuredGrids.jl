@@ -24,6 +24,9 @@ export vtkid
 export vtknodes
 export refcells
 export append
+export celldata
+export reffaces
+export pointdata
 
 # Interfaces
 
@@ -173,7 +176,11 @@ function CellData(
   CellData(c,celltypes)
 end
 
-
+function append(a::CellData{A,B},b::CellData{A,B}) where {A,B}
+  c = append(connections(a),connections(b))
+  t = vcat(celltypes(a),celltypes(b))
+  CellData(c,t)
+end
 
 struct PointData{P<:AbstractArray{<:Number,2}} <: AbstractPointData
   coords::P

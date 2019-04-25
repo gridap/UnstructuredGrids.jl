@@ -4,6 +4,7 @@ using Test
 using UnstructuredGrids.VTK
 using UnstructuredGrids.Core
 using UnstructuredGrids.Factories
+using UnstructuredGrids.Factories: HEXAHEDRON
 
 d = mktempdir()
 f = joinpath(d,"grid")
@@ -23,6 +24,8 @@ writevtk(fgrid,f)
 fgrid = Grid(grid,dim=1)
 
 writevtk(fgrid,f)
+
+writevtk(HEXAHEDRON,"hex")
 
 rm(d,recursive=true)
 

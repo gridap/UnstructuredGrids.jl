@@ -14,6 +14,16 @@ s = """
     """
 @test s == string(c)
 
+ca = Connections([[1,2,6,3,],[1,4,4],[1]])
+cb = Connections([[1,2,],[1,2,3,4,4],[1,3,1]])
+
+c = append(ca,cb)
+
+l = [1, 2, 6, 3, 1, 4, 4, 1, 1, 2, 1, 2, 3, 4, 4, 1, 3, 1]
+p = [1, 5, 8, 9, 11, 16, 19]
+@test list(c) == l
+@test ptrs(c) == p
+
 grid = Grid(domain=(0,1,-1,0),partition=(2,2))
 
 graph = GridGraph(grid)
