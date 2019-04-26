@@ -72,6 +72,19 @@ pc = append_ptrs(pa,pb)
 
 @test pc == [1, 3, 5, 7, 9, 11, 13, 15]
 
+vertex_to_faces_data, vertex_to_faces_ptrs = generate_face_to_cells(
+  face_to_vertices_data,face_to_vertices_ptrs)
 
+_cell_to_faces_data, _cell_to_faces_ptrs = generate_cell_to_faces_from_faces(
+  cell_to_vertices_data,
+  cell_to_vertices_ptrs,
+  ctype_to_lface_to_lvertices_data,
+  ctype_to_lface_to_lvertices_ptrs,
+  cell_to_ctype,
+  vertex_to_faces_data,
+  vertex_to_faces_ptrs)
+
+@test cell_to_faces_data == _cell_to_faces_data
+@test cell_to_faces_ptrs == _cell_to_faces_ptrs
 
 end # module KernelsTests

@@ -305,6 +305,17 @@ function Grid(r::Mesh;dim::Integer)
   Grid(cdata,rcells,pdata)
 end
 
+struct Model{M<:Mesh}
+  mesh::M
+  dim_to_cell_to_entity::Vector{Vector{Int}}
+  entity_to_tags::Vector{Int}
+  tags_to_names::Vector{String}
+end
+
+function Model(grid::Grid)
+  mesh = Mesh(grid)
+end
+
 # Definition of vertex
 
 const VERTEX = RefCell(
