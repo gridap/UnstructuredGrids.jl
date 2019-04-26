@@ -63,4 +63,6 @@ face_to_vertices_ptrs = [1,3,5,7,9,11,13,15,17,19,21,23,25,27]
 
 face_to_isboundary = Bool[true, false, true, false, true, false, true, false, true, true, false, true, true]
 
+vertex_to_isboundary = Bool[true, true, true, true, false, true, true, true, true]
+
 

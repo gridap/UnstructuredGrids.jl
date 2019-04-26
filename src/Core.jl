@@ -334,6 +334,23 @@ function GridGraph(m::Mesh;dim::Integer)
   GridGraph(dim,conn,dualconn)
 end
 
+struct BoundaryMask
+  data::Vector{Vector{Bool}}
+end
+
+isboundary(b::BoundaryMask;dim::Integer) = b.data[dim+1]
+
+function BoundaryMask(
+  face_to_isboundary::Vector{Bool},
+  dim_to_object_to_faces::Vector{<:Connections})
+  dims = length(dim_to_face_to_objects)
+  data = Vector{Vector{Bool}}(undef,dims+1)
+  for d in 1:dims
+  end
+end
+
+
+
 #struct Model{M<:Mesh}
 #  mesh::M
 #  dim_to_cell_to_entity::Vector{Vector{Int}}
@@ -351,6 +368,11 @@ const VERTEX = RefCell(
   ndims = 0, faces = fill([Int[]],0), vtkid = 1, vtknodes = [1] )
 
 # Helpers
+
+function _generate_face_to_isboundary(face_to_cells::Connections)
+  face_to_cells_ptrs = ptrs(face_to_cells)
+  generate_face_to_isboundary(face_to_cells_ptrs)
+end
 
 function _generate_face_to_cells(c::Connections)
   _data, _ptrs = generate_face_to_cells(list(c),ptrs(c))
