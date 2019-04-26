@@ -97,6 +97,20 @@ grid = Grid(domain=(0,1,-1,0),partition=(2,2))
 
 mesh = Mesh(grid)
 
-#graph = GridGraph(mesh,dim=2)
+graph = GridGraph(mesh,dim=2)
+
+c = connections(graph,from=2,to=1)
+
+l = [1, 2, 3, 4, 5, 6, 4, 7, 2, 8, 9, 10, 6, 11, 10, 12]
+p = [1, 5, 9, 13, 17]
+@test list(c) == l
+@test ptrs(c) == p
+
+c = connections(graph,from=1,to=2)
+
+l = [1, 1, 3, 1, 1, 2, 2, 2, 4, 2, 3, 3, 3, 4, 4, 4]
+p = [1, 2, 4, 5, 7, 8, 10, 11, 12, 13, 15, 16, 17]
+@test list(c) == l
+@test ptrs(c) == p
 
 end # module CoreTests

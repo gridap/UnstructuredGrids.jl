@@ -265,7 +265,7 @@ end
 struct Mesh{C<:Vector{<:CellData},D<:Vector{<:Connections},P<:PointData}
   cdata::C
   dualc::D
-  rcells::Vector{RefCell}
+  rcells::Vector{Vector{RefCell}}
   ndims::Int
   pdata::P
 end
@@ -278,7 +278,7 @@ celltypes(r::Mesh,dim::Integer) = celltypes(celldata(r,dim))
 
 celldata(r::Mesh,dim::Integer) = r.cdata[dim+1]
 
-refcells(r::Mesh) = r.rcells
+refcells(r::Mesh,dim::Integer) = r.rcells[dim+1]
 
 ndims(r::Mesh)::Integer = r.ndims
 
@@ -289,50 +289,50 @@ function Mesh(grid::Grid)
   cell_to_vertices = connections(grid)
   vertex_to_cells = _generate_face_to_cells(cell_to_vertices)
   cdata = CellData[]
-  rcells = RefCell[]
+  rcells = Vector{RefCell}[]
   dualc = Connections[]
   for d in 0:(dim-1)
     fgrid = Grid(grid,vertex_to_cells,dim=d)
     c = connections(fgrid)
-    t = celltypes(fgrid) .+ length(rcells)
+    t = celltypes(fgrid)
     dc = _generate_face_to_cells(c)
     push!(cdata,CellData(c,t))
     push!(dualc,dc)
-    rcells = vcat(rcells, refcells(fgrid))
+    rcells = push!(rcells, refcells(fgrid))
   end
   c = connections(grid)
-  t = celltypes(grid) .+ length(rcells)
+  t = celltypes(grid)
   push!(cdata,CellData(c,t))
   push!(dualc,vertex_to_cells)
-  rcells = vcat(rcells, refcells(grid))
+  rcells = push!(rcells, refcells(grid))
   pdata = PointData(coordinates(grid))
   Mesh(cdata,dualc,rcells,dim,pdata)
 end
 
 function Grid(r::Mesh;dim::Integer)
   cdata = celldata(r,dim)
-  rcells = refcells(r)
+  rcells = refcells(r,dim)
   pdata = pointdata(r)
   Grid(cdata,rcells,pdata)
 end
 
-#function GridGraph(m::Mesh;dim::Integer)
-#  conn = Vector{Connections}(undef,dim)
-#  dualconn = Vector{Connections}(undef,dim)
-#  cell_to_vertices = connections(m,dim)
-#  vertex_to_cells = dualconnections(m,dim)
-#  conn[0+1] = cell_to_vertices
-#  dualconn[0+1] = vertex_to_cells
-#  cell_to_ctype = celltypes(m,dim)
-#  ctype_to_refcell = refcells(m)
-#  for d in 1:(dim-1)
-#    vertex_to_faces = dualconnections(m,d)
-#    conn[d+1] = _generate_cell_to_faces_from_faces(
-#      dim, cell_to_vertices, vertex_to_faces, cell_to_ctype, ctype_to_refcell)
-#    dualconn[d+1] = _generate_face_to_cells(conn[d+1])
-#  end
-#  GridGraph(dim,conn,dualconn)
-#end
+function GridGraph(m::Mesh;dim::Integer)
+  conn = Vector{Connections}(undef,dim)
+  dualconn = Vector{Connections}(undef,dim)
+  cell_to_vertices = connections(m,dim)
+  vertex_to_cells = dualconnections(m,dim)
+  conn[0+1] = cell_to_vertices
+  dualconn[0+1] = vertex_to_cells
+  cell_to_ctype = celltypes(m,dim)
+  ctype_to_refcell = refcells(m,dim)
+  for d in 1:(dim-1)
+    vertex_to_faces = dualconnections(m,d)
+    conn[d+1] = _generate_cell_to_faces_from_faces(
+      d, cell_to_vertices, vertex_to_faces, cell_to_ctype, ctype_to_refcell)
+    dualconn[d+1] = _generate_face_to_cells(conn[d+1])
+  end
+  GridGraph(dim,conn,dualconn)
+end
 
 #struct Model{M<:Mesh}
 #  mesh::M
