@@ -93,4 +93,8 @@ grid = Grid(HEX,dim=1)
 
 grid = Grid(HEX,dim=0)
 
+grid = Grid(domain=(0,1,-1,0),partition=(2,2))
+
+mesh = Mesh(grid)
+
 end # module CoreTests

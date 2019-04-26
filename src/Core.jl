@@ -9,6 +9,7 @@ import Base: show
 export RefCell
 export Grid
 export Connections
+export Mesh
 export GridGraph
 export VERTEX
 export coordinates
@@ -196,9 +197,11 @@ function Grid(
   Grid(cdata,refcells,pdata)
 end
 
-function Grid(grid::Grid;dim::Integer)
+function Grid(
+  grid::Grid,
+  vertex_to_cells=_generate_face_to_cells(connections(grid));
+  dim::Integer)
   cell_to_vertices = connections(grid)
-  vertex_to_cells = _generate_face_to_cells(cell_to_vertices)
   cell_to_ctype = celltypes(grid)
   ctype_to_refcell = refcells(grid)
   cell_to_faces = _generate_cell_to_faces(
@@ -257,6 +260,49 @@ function GridGraph(grid::Grid)
     dualconn[d+1] = _generate_face_to_cells(conn[d+1])
   end
   GridGraph(dim,conn,dualconn)
+end
+
+struct Mesh{C<:Vector{<:CellData},P<:PointData}
+  cdata::C
+  rcells::Vector{RefCell}
+  ndims::Int
+  pdata::P
+end
+
+celldata(r::Mesh,dim::Integer) = r.cdata[dim+1]
+
+refcells(r::Mesh) = r.rcells
+
+ndims(r::Mesh)::Integer = r.ndims
+
+pointdata(r::Mesh) = r.pdata
+
+function Mesh(grid::Grid)
+  dim = ndims(grid)
+  cell_to_vertices = connections(grid)
+  vertex_to_cells = _generate_face_to_cells(cell_to_vertices)
+  cdata = CellData[]
+  rcells = RefCell[]
+  for d in 0:(dim-1)
+    fgrid = Grid(grid,vertex_to_cells,dim=d)
+    c = connections(fgrid)
+    t = celltypes(fgrid) .+ length(rcells)
+    push!(cdata,CellData(c,t))
+    rcells = vcat(rcells, refcells(fgrid))
+  end
+  c = connections(grid)
+  t = celltypes(grid) .+ length(rcells)
+  push!(cdata,CellData(c,t))
+  rcells = vcat(rcells, refcells(grid))
+  pdata = PointData(coordinates(grid))
+  Mesh(cdata,rcells,dim,pdata)
+end
+
+function Grid(r::Mesh;dim::Integer)
+  cdata = celldata(r,dim)
+  rcells = refcells(r)
+  pdata = pointdata(r)
+  Grid(cdata,rcells,pdata)
 end
 
 # Definition of vertex

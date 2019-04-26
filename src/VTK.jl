@@ -33,6 +33,14 @@ function writevtk(r::RefCell,filebase)
   end
 end
 
+function writevtk(r::Mesh,filebase)
+  for d in 0:ndims(r)
+    f = "$(filebase)_$d"
+    grid = Grid(r,dim=d)
+    writevtk(grid,f)
+  end
+end
+
 function _vtkcells(grid::Grid)
   vtkid_to_vtktype = _vtkcelltypedict()
   cell_to_ctype = celltypes(grid)
