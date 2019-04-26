@@ -97,4 +97,6 @@ grid = Grid(domain=(0,1,-1,0),partition=(2,2))
 
 mesh = Mesh(grid)
 
+#graph = GridGraph(mesh,dim=2)
+
 end # module CoreTests
