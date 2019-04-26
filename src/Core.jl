@@ -100,7 +100,7 @@ vtknodes(v::VtkData) = v.vtknodes
 
 struct RefCell
   cdata::Vector{CellData{Vector{Int},Vector{Int},Vector{Int}}}
-  rfaces::Vector{RefCell}
+  rfaces::Vector{Vector{RefCell}}
   ndims::Int
   pdata::PointData{Array{Float64,2}}
   vtkdata::VtkData
@@ -108,7 +108,7 @@ end
 
 celldata(r::RefCell,dim::Integer) = r.cdata[dim+1]
 
-reffaces(r::RefCell) = r.rfaces
+reffaces(r::RefCell,dim::Integer) = r.rfaces[dim+1]
 
 ndims(r::RefCell)::Integer = r.ndims
 
@@ -129,7 +129,7 @@ vtknodes(r::RefCell) = vtknodes(vtkdata(r))
 function RefCell(;
   ndims::Int,
   faces::Vector{Vector{Vector{Int}}},
-  reffaces::Vector{RefCell} = Vector{RefCell}(undef,0),
+  reffaces::Vector{Vector{RefCell}} = [RefCell[]],
   facetypes::Vector{Vector{Int}} = fill(Int[],ndims),
   points::Array{Float64,2} = zeros(ndims,0),
   vtkid::Int = UNSET,
@@ -217,7 +217,7 @@ end
 
 function Grid(r::RefCell;dim::Integer)
   cdata = celldata(r,dim)
-  rcells = reffaces(r)
+  rcells = reffaces(r,dim)
   pdata = pointdata(r)
   Grid(cdata,rcells,pdata)
 end
@@ -334,16 +334,16 @@ end
 #  GridGraph(dim,conn,dualconn)
 #end
 
-struct Model{M<:Mesh}
-  mesh::M
-  dim_to_cell_to_entity::Vector{Vector{Int}}
-  entity_to_tags::Vector{Int}
-  tags_to_names::Vector{String}
-end
-
-function Model(grid::Grid)
-  mesh = Mesh(grid)
-end
+#struct Model{M<:Mesh}
+#  mesh::M
+#  dim_to_cell_to_entity::Vector{Vector{Int}}
+#  entity_to_tags::Vector{Int}
+#  tags_to_names::Vector{String}
+#end
+#
+#function Model(grid::Grid)
+#  mesh = Mesh(grid)
+#end
 
 # Definition of vertex
 
@@ -474,7 +474,7 @@ function _prepare_ftypes(dim,ctype_to_refcell)
 
   i = 1
   for (ctype,refcell) in enumerate(ctype_to_refcell)
-    lftype_to_refface = reffaces(refcell)
+    lftype_to_refface = reffaces(refcell,dim)
     lftype_to_i = Vector{Int}(undef,length(lftype_to_refface))
     for (lftype,refface) in enumerate(lftype_to_refface)
       push!(i_to_refface,refface)
