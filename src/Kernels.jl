@@ -1,10 +1,13 @@
 module Kernels
 
+using UnstructuredGrids.Helpers
+
 export generate_face_to_cells
 export generate_cell_to_faces
 export generate_face_to_ftype
 export generate_face_to_vertices
 export generate_cell_to_faces_from_faces
+export generate_face_to_isboundary
 export rewind_ptrs!
 export length_to_ptrs!
 export generate_data_and_ptrs
@@ -62,6 +65,13 @@ function generate_cell_to_faces_from_faces(
     cell_to_ctype,
     vertex_to_faces_data,
     vertex_to_faces_ptrs)
+end
+
+function generate_face_to_isboundary(face_to_cells_ptrs)
+  nfaces = length(face_to_cells_ptrs)-1
+  face_to_isboundary = fill(false,nfaces)
+  _generate_face_to_isboundary_fill!(face_to_isboundary,face_to_cells_ptrs)
+  face_to_isboundary
 end
 
 function generate_face_to_ftype(
@@ -167,6 +177,21 @@ function _generate_data_and_ptrs_fill_data!(data,vv)
     for vi in v
       data[k] = vi
       k += 1
+    end
+  end
+end
+
+function _generate_face_to_isboundary_fill!(
+  face_to_isboundary, face_to_cells_ptrs)
+  nfaces = length(face_to_isboundary)
+  for face in 1:nfaces
+    ncells_around = face_to_cells_ptrs[face+1] - face_to_cells_ptrs[face]
+    if ncells_around == 1
+      face_to_isboundary[face] = true
+    elseif ncells_around == 2
+      face_to_isboundary[face] = false
+    else
+      @unreachable
     end
   end
 end

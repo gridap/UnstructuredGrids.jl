@@ -87,4 +87,11 @@ _cell_to_faces_data, _cell_to_faces_ptrs = generate_cell_to_faces_from_faces(
 @test cell_to_faces_data == _cell_to_faces_data
 @test cell_to_faces_ptrs == _cell_to_faces_ptrs
 
+face_to_cells_data, face_to_cells_ptrs = generate_face_to_cells(
+  cell_to_faces_data, cell_to_faces_ptrs)
+
+_face_to_isboundary = generate_face_to_isboundary(face_to_cells_ptrs)
+
+@test face_to_isboundary == _face_to_isboundary
+
 end # module KernelsTests
