@@ -6,25 +6,25 @@ using UnstructuredGrids.Kernels
 import Base: ndims
 import Base: show
 
-export IndexToIndices
+export Connections
 export RefCell
 export Grid
 
-struct IndexToIndices{L<:AbstractVector{<:Integer},P<:AbstractVector{<:Integer}}
+struct Connections{L<:AbstractVector{<:Integer},P<:AbstractVector{<:Integer}}
   list::L
   ptrs::P
 end
 
-get_data(c::IndexToIndices) = c.list
+get_data(c::Connections) = c.list
 
-get_ptrs(c::IndexToIndices) = c.ptrs
+get_ptrs(c::Connections) = c.ptrs
 
-function IndexToIndices(c::AbstractVector{<:AbstractVector{<:Integer}})
+function Connections(c::AbstractVector{<:AbstractVector{<:Integer}})
   list, ptrs = generate_data_and_ptrs(c)
-  IndexToIndices(list,ptrs)
+  Connections(list,ptrs)
 end
 
-function show(io::IO,c::IndexToIndices)
+function show(io::IO,c::Connections)
   clist = list(c)
   cptrs = ptrs(c)
   ncells = length(cptrs)-1
@@ -37,7 +37,7 @@ end
 
 struct RefCell
   ndims::Int
-  dim_to_face_to_vertices::IndexToIndices{Vector{Int},Vector{Int}}
+  dim_to_face_to_vertices::Connections{Vector{Int},Vector{Int}}
   dim_to_face_to_ftype::Vector{Int}
   dim_to_ftype_to_refface::Vector{Vector{RefCell}}
   vertex_to_coords::Array{Float64,2}
@@ -91,7 +91,7 @@ const VERTEX = RefCell(
   vtknodes = [1] )
 
 struct Grid{
-  C<:IndexToIndices,
+  C<:Connections,
   T<:AbstractVector{<:Integer},
   X<:AbstractArray{<:Number,2}}
 
@@ -119,17 +119,17 @@ function get_ctype_to_lface_to_lvertices(
   [ get_face_to_vertices(refcell,dim) for refcell in ctype_to_refcell ]
 end
 
-function generate_face_to_cells(cell_to_faces::IndexToIndices)
+function generate_face_to_cells(cell_to_faces::Connections)
   cell_to_faces_data = get_data(cell_to_faces)
   cell_to_faces_ptrs = get_ptrs(cell_to_faces)
   face_to_cells_data, face_to_cells_ptrs = generate_face_to_cells(
   cell_to_faces_data, cell_to_faces_ptrs)
-  IndexToIndices(face_to_cells_data, face_to_cells_ptrs)
+  Connections(face_to_cells_data, face_to_cells_ptrs)
 end
 
 function generate_cell_to_faces(
-  cell_to_vertices::IndexToIndices,
-  vertex_to_cells::IndexToIndices,
+  cell_to_vertices::Connections,
+  vertex_to_cells::Connections,
   cell_to_ctype::AbstractVector{<:Integer},
   ctype_to_refcell::Vector{RefCell},
   dim::Integer)
@@ -146,10 +146,10 @@ function generate_cell_to_faces(
 end
 
 function generate_cell_to_faces(
-  cell_to_vertices::IndexToIndices,
-  vertex_to_cells::IndexToIndices,
+  cell_to_vertices::Connections,
+  vertex_to_cells::Connections,
   cell_to_ctype::AbstractVector{<:Integer},
-  ctype_to_lface_to_lvertices::Vector{<:IndexToIndices})
+  ctype_to_lface_to_lvertices::Vector{<:Connections})
 
   cell_to_vertices_data = get_data(cell_to_vertices)
   cell_to_vertices_ptrs = get_ptrs(cell_to_vertices)
@@ -169,13 +169,13 @@ function generate_cell_to_faces(
     vertex_to_cells_data,
     vertex_to_cells_ptrs)
 
-  IndexToIndices(cell_to_faces_data, cell_to_faces_ptrs)
+  Connections(cell_to_faces_data, cell_to_faces_ptrs)
 
 end
 
 function generate_cell_to_faces_from_faces(
-  cell_to_vertices::IndexToIndices,
-  vertex_to_faces::IndexToIndices,
+  cell_to_vertices::Connections,
+  vertex_to_faces::Connections,
   cell_to_ctype::AbstractVector{<:Integer},
   ctype_to_refcell::Vector{RefCell},
   dim::Integer)
@@ -192,10 +192,10 @@ function generate_cell_to_faces_from_faces(
 end
 
 function generate_cell_to_faces_from_faces(
-  cell_to_vertices::IndexToIndices,
-  vertex_to_faces::IndexToIndices,
+  cell_to_vertices::Connections,
+  vertex_to_faces::Connections,
   cell_to_ctype::AbstractVector{<:Integer},
-  ctype_to_lface_to_lvertices::Vector{<:IndexToIndices})
+  ctype_to_lface_to_lvertices::Vector{<:Connections})
 
   cell_to_vertices_data = get_data(cell_to_vertices)
   cell_to_vertices_ptrs = get_ptrs(cell_to_vertices)
@@ -215,14 +215,14 @@ function generate_cell_to_faces_from_faces(
     vertex_to_faces_data,
     vertex_to_faces_ptrs)
 
-  IndexToIndices(cell_to_faces_data, cell_to_faces_ptrs)
+  Connections(cell_to_faces_data, cell_to_faces_ptrs)
 
 end
 
 # Helpers
 
 function _split_vector_of_indextoindices(
-  ctype_to_lface_to_lvertices::Vector{IndexToIndices})
+  ctype_to_lface_to_lvertices::Vector{Connections})
 
   ctype_to_lface_to_lvertices_data = [
     get_data(lface_to_lvertices)
