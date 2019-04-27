@@ -6,24 +6,21 @@ using UnstructuredGrids.Kernels
 import Base: ndims
 import Base: show
 
+export Connections
 export RefCell
 export Grid
-export Connections
-export Mesh
-export GridGraph
 export VERTEX
-export coordinates
-export connections
-export celltypes
 export list
 export ptrs
+export coordinates
+export connections
+export reffaces
+export facetypes
 export vtkid
 export vtknodes
+export celltypes
 export refcells
-export append
-export celldata
-export reffaces
-export pointdata
+
 
 struct Connections{L<:AbstractVector{<:Integer},P<:AbstractVector{<:Integer}}
   list::L
@@ -34,15 +31,16 @@ list(c::Connections) = c.list
 
 ptrs(c::Connections) = c.ptrs
 
-function Connections(c::Vector{Vector{Int}})
+function Connections(c::AbstractVector{<:AbstractVector{<:Integer}})
   list, ptrs = generate_data_and_ptrs(c)
   Connections(list,ptrs)
 end
 
-function append(a::Connections{A,B},b::Connections{A,B}) where {A,B}
-  p = append_ptrs(ptrs(a),ptrs(b))
-  l = vcat(list(a),list(b))
-  Connections(l,p)
+function split_vector_of_connections(
+  cs::Vector{<:Connections})
+  cdata = [ list(c) for c in cs ]
+  cptrs = [ ptrs(c) for c in cs ]
+  (cdata, cptrs)
 end
 
 function show(io::IO,c::Connections)
@@ -56,145 +54,92 @@ function show(io::IO,c::Connections)
   end
 end
 
-struct CellData{
-  L<:AbstractVector{<:Integer},
-  P<:AbstractVector{<:Integer},
-  C<:AbstractVector{<:Integer}}
-  connections::Connections{L,P}
-  celltypes::C
-end
-
-connections(d::CellData) = d.connections
-
-celltypes(d::CellData) = d.celltypes
-
-function CellData(
-  connections::AbstractVector{<:AbstractVector{<:Integer}},
-  celltypes::AbstractVector{<:Integer})
-  c = Connections(connections)
-  CellData(c,celltypes)
-end
-
-function append(a::CellData{A,B,C},b::CellData{A,B,C}) where {A,B,C}
-  c = append(connections(a),connections(b))
-  t = vcat(celltypes(a),celltypes(b))
-  CellData(c,t)
-end
-
-struct PointData{P<:AbstractArray{<:Number,2}}
-  coords::P
-end
-
-coordinates(p::PointData) = p.coords
-
-ndims(p::PointData) = size(coordinates(p),1)
-
-struct VtkData
+struct RefCell
+  ndims::Int
+  faces::Vector{Connections{Vector{Int},Vector{Int}}}
+  facetypes::Vector{Vector{Int}}
+  reffaces::Vector{Vector{RefCell}}
+  coordinates::Array{Float64,2}
   vtkid::Int
   vtknodes::Vector{Int}
 end
 
-vtkid(v::VtkData) = v.vtkid
-
-vtknodes(v::VtkData) = v.vtknodes
-
-struct RefCell
-  cdata::Vector{CellData{Vector{Int},Vector{Int},Vector{Int}}}
-  rfaces::Vector{Vector{RefCell}}
-  ndims::Int
-  pdata::PointData{Array{Float64,2}}
-  vtkdata::VtkData
-end
-
-celldata(r::RefCell,dim::Integer) = r.cdata[dim+1]
-
-reffaces(r::RefCell,dim::Integer) = r.rfaces[dim+1]
-
 ndims(r::RefCell)::Integer = r.ndims
 
-pointdata(r::RefCell) = r.pdata
+connections(r::RefCell, dim::Integer) =r.faces[dim+1]
 
-vtkdata(r::RefCell) = r.vtkdata
+facetypes(r::RefCell, dim::Integer) = r.facetypes[dim+1]
 
-coordinates(refcell::RefCell) = coordinates(pointdata(refcell))
+reffaces(r::RefCell, dim::Integer) =r.reffaces[dim+1]
 
-connections(refcell::RefCell,dim::Integer) = connections(celldata(refcell,dim))
+coordinates(r::RefCell) = r.coordinates
 
-celltypes(refcell::RefCell,dim::Integer) = celltypes(celldata(refcell,dim))
+vtkid(r::RefCell) = r.vtkid
 
-vtkid(r::RefCell) = vtkid(vtkdata(r))
-
-vtknodes(r::RefCell) = vtknodes(vtkdata(r))
+vtknodes(r::RefCell) = r.vtknodes
 
 function RefCell(;
   ndims::Int,
   faces::Vector{Vector{Vector{Int}}},
-  reffaces::Vector{Vector{RefCell}} = [RefCell[]],
   facetypes::Vector{Vector{Int}} = fill(Int[],ndims),
-  points::Array{Float64,2} = zeros(ndims,0),
+  reffaces::Vector{Vector{RefCell}} = fill(RefCell[],ndims),
+  coordinates::Array{Float64,2} = zeros(ndims,0),
   vtkid::Int = UNSET,
   vtknodes::Vector{Int} = Int[])
+
   @assert ndims == length(faces)
-  cdata = Vector{CellData}(undef,ndims)
-  for dim in 1:ndims
-    _faces = faces[dim]
-    _facetypes = facetypes[dim]
-    cdata[dim] = CellData(_faces,_facetypes)
-  end
-  rfaces = reffaces
-  pdata = PointData(points)
-  vtkdata = VtkData(vtkid,vtknodes)
-  RefCell(cdata,rfaces,ndims,pdata,vtkdata)
+  @assert ndims == length(facetypes)
+  @assert ndims == length(reffaces)
+  @assert ndims == size(coordinates,1)
+
+  _faces = [ Connections(f) for f in faces ]
+
+  RefCell( ndims, _faces, facetypes, reffaces, coordinates, vtkid, vtknodes)
+
 end
 
-struct Grid{ C<:CellData, P<:PointData}
-  cdata::C
-  rcells::Vector{RefCell}
-  pdata::P
+const VERTEX = RefCell(
+  ndims = 0, faces = fill([Int[]],0), vtkid = 1, vtknodes = [1] )
+
+struct Grid{
+  C<:Connections,
+  T<:AbstractVector{<:Integer},
+  X<:AbstractArray{<:Number,2}}
+
+  cells::C
+  celltypes::T
+  refcells::Vector{RefCell}
+  coordinates::X
+
 end
 
-celldata(g::Grid) = g.cdata
+connections(g::Grid) = g.cells
 
-refcells(g::Grid) = g.rcells
+celltypes(g::Grid) = g.celltypes
 
-pointdata(g::Grid) = g.pdata
+refcells(g::Grid) = g.refcells
 
-coordinates(grid::Grid) = coordinates(pointdata(grid))
+coordinates(g::Grid) = g.coordinates
 
-connections(grid::Grid) = connections(celldata(grid))
-
-celltypes(grid::Grid) = celltypes(celldata(grid))
-
-function ndims(grid::Grid)
-  rcs = refcells(grid)
-  rc = rcs[1]
-  d = ndims(rc)
-  for rc2 in rcs
-    @assert d == ndims(rc2)
-  end
-  d
+function refconnections(g::Grid,dim::Integer)
+  refconnections(refcells(g),dim)
 end
 
-function Grid(
-  points::AbstractArray{<:Number,2},
-  celllist::AbstractVector{<:Integer},
-  cellptrs::AbstractVector{<:Integer},
-  celltypes::AbstractVector{<:Integer},
-  refcells::Vector{RefCell})
-  c = Connections(celllist,cellptrs)
-  cdata = CellData(c,celltypes)
-  pdata = PointData(points)
-  Grid(cdata,refcells,pdata)
+function refconnections(refcells::Vector{RefCell}, dim::Integer)
+  [ connections(refcell,dim) for refcell in refcells ]
 end
 
-function Grid(
-  points::AbstractArray{<:Number,2},
-  cells::Connections,
-  celltypes::AbstractVector{<:Integer},
-  refcells::Vector{RefCell})
-  cdata = CellData(cells,celltypes)
-  pdata = PointData(points)
-  Grid(cdata,refcells,pdata)
+function Grid( cellsdata, cellsptrs, celltypes, refcells, coordinates)
+  cells = Connections(cellsdata, cellsptrs)
+  Grid( cells, celltypes, refcells, coordinates)
+end
+
+function Grid(r::RefCell;dim::Integer)
+  cells = connections(r,dim)
+  celltypes = facetypes(r,dim)
+  refcells = reffaces(r,dim)
+  coords = coordinates(r)
+  Grid( cells, celltypes, refcells, coords)
 end
 
 function Grid(
@@ -205,192 +150,38 @@ function Grid(
   cell_to_ctype = celltypes(grid)
   ctype_to_refcell = refcells(grid)
   cell_to_faces = _generate_cell_to_faces(
-      dim, cell_to_vertices, vertex_to_cells, cell_to_ctype, ctype_to_refcell)
+      cell_to_vertices, vertex_to_cells, cell_to_ctype, ctype_to_refcell,dim)
   ftype_to_refface, ctype_to_lface_to_ftype = _prepare_ftypes(dim,ctype_to_refcell)
   face_to_ftype = _generate_face_to_ftype(
     cell_to_faces, cell_to_ctype, ctype_to_lface_to_ftype)
   face_to_vertices = _generate_face_to_vertices(
     dim, cell_to_vertices, cell_to_faces, cell_to_ctype, ctype_to_refcell)
   point_to_coords = coordinates(grid)
-  Grid(point_to_coords, face_to_vertices, face_to_ftype, ftype_to_refface)
+  Grid(face_to_vertices, face_to_ftype, ftype_to_refface, point_to_coords)
 end
 
-function Grid(r::RefCell;dim::Integer)
-  cdata = celldata(r,dim)
-  rcells = reffaces(r,dim)
-  pdata = pointdata(r)
-  Grid(cdata,rcells,pdata)
-end
-
-struct GridGraph{ C<:Vector{<:Connections}, D<:Vector{<:Connections}}
-  ndims::Int
-  conn::C
-  dualconn::D
-end
-
-ndims(g::GridGraph) = g.ndims
-
-connections(g::GridGraph,dim::Integer) = g.conn[dim+1]
-
-dualconnections(g::GridGraph,dim::Integer) = g.dualconn[dim+1]
-
-function connections(graph::GridGraph;from::Integer,to::Integer)
-  if ndims(graph) == from 
-    return connections(graph,to)
-  elseif ndims(graph) == to
-    return dualconnections(graph,from)
-  else
-    @unreachable
-  end
-end
-
-function GridGraph(grid::Grid)
-  dim = ndims(grid)
-  conn = Vector{Connections}(undef,dim)
-  dualconn = Vector{Connections}(undef,dim)
-  cell_to_vertices = connections(grid)
-  vertex_to_cells = _generate_face_to_cells(cell_to_vertices)
-  conn[0+1] = cell_to_vertices
-  dualconn[0+1] = vertex_to_cells
-  cell_to_ctype = celltypes(grid)
-  ctype_to_refcell = refcells(grid)
-  for d in 1:dim-1
-    conn[d+1] = _generate_cell_to_faces(
-      d, cell_to_vertices, vertex_to_cells, cell_to_ctype, ctype_to_refcell)
-    dualconn[d+1] = _generate_face_to_cells(conn[d+1])
-  end
-  GridGraph(dim,conn,dualconn)
-end
-
-struct Mesh{C<:Vector{<:CellData},D<:Vector{<:Connections},P<:PointData}
-  cdata::C
-  dualc::D
-  rcells::Vector{Vector{RefCell}}
-  ndims::Int
-  pdata::P
-end
-
-dualconnections(r::Mesh,dim::Integer) = r.dualc[dim+1]
-
-connections(r::Mesh,dim::Integer) = connections(celldata(r,dim))
-
-celltypes(r::Mesh,dim::Integer) = celltypes(celldata(r,dim))
-
-celldata(r::Mesh,dim::Integer) = r.cdata[dim+1]
-
-refcells(r::Mesh,dim::Integer) = r.rcells[dim+1]
-
-ndims(r::Mesh)::Integer = r.ndims
-
-pointdata(r::Mesh) = r.pdata
-
-function Mesh(grid::Grid)
-  dim = ndims(grid)
-  cell_to_vertices = connections(grid)
-  vertex_to_cells = _generate_face_to_cells(cell_to_vertices)
-  cdata = CellData[]
-  rcells = Vector{RefCell}[]
-  dualc = Connections[]
-  for d in 0:(dim-1)
-    fgrid = Grid(grid,vertex_to_cells,dim=d)
-    c = connections(fgrid)
-    t = celltypes(fgrid)
-    dc = _generate_face_to_cells(c)
-    push!(cdata,CellData(c,t))
-    push!(dualc,dc)
-    rcells = push!(rcells, refcells(fgrid))
-  end
-  c = connections(grid)
-  t = celltypes(grid)
-  push!(cdata,CellData(c,t))
-  push!(dualc,vertex_to_cells)
-  rcells = push!(rcells, refcells(grid))
-  pdata = PointData(coordinates(grid))
-  Mesh(cdata,dualc,rcells,dim,pdata)
-end
-
-function Grid(r::Mesh;dim::Integer)
-  cdata = celldata(r,dim)
-  rcells = refcells(r,dim)
-  pdata = pointdata(r)
-  Grid(cdata,rcells,pdata)
-end
-
-function GridGraph(m::Mesh;dim::Integer)
-  conn = Vector{Connections}(undef,dim)
-  dualconn = Vector{Connections}(undef,dim)
-  cell_to_vertices = connections(m,dim)
-  vertex_to_cells = dualconnections(m,dim)
-  conn[0+1] = cell_to_vertices
-  dualconn[0+1] = vertex_to_cells
-  cell_to_ctype = celltypes(m,dim)
-  ctype_to_refcell = refcells(m,dim)
-  for d in 1:(dim-1)
-    vertex_to_faces = dualconnections(m,d)
-    conn[d+1] = _generate_cell_to_faces_from_faces(
-      d, cell_to_vertices, vertex_to_faces, cell_to_ctype, ctype_to_refcell)
-    dualconn[d+1] = _generate_face_to_cells(conn[d+1])
-  end
-  GridGraph(dim,conn,dualconn)
-end
-
-struct BoundaryMask
-  data::Vector{Vector{Bool}}
-end
-
-isboundary(b::BoundaryMask;dim::Integer) = b.data[dim+1]
-
-function BoundaryMask(
-  face_to_isboundary::Vector{Bool},
-  dim_to_object_to_faces::Vector{<:Connections})
-  dims = length(dim_to_face_to_objects)
-  data = Vector{Vector{Bool}}(undef,dims+1)
-  for d in 1:dims
-  end
-end
-
-
-
-#struct Model{M<:Mesh}
-#  mesh::M
-#  dim_to_cell_to_entity::Vector{Vector{Int}}
-#  entity_to_tags::Vector{Int}
-#  tags_to_names::Vector{String}
-#end
-#
-#function Model(grid::Grid)
-#  mesh = Mesh(grid)
-#end
-
-# Definition of vertex
-
-const VERTEX = RefCell(
-  ndims = 0, faces = fill([Int[]],0), vtkid = 1, vtknodes = [1] )
-
-# Helpers
-
-function _generate_face_to_isboundary(face_to_cells::Connections)
-  face_to_cells_ptrs = ptrs(face_to_cells)
-  generate_face_to_isboundary(face_to_cells_ptrs)
-end
-
-function _generate_face_to_cells(c::Connections)
-  _data, _ptrs = generate_face_to_cells(list(c),ptrs(c))
-  Connections(_data,_ptrs)
+function _generate_face_to_cells(cell_to_faces::Connections)
+  cell_to_faces_data = list(cell_to_faces)
+  cell_to_faces_ptrs = ptrs(cell_to_faces)
+  face_to_cells_data, face_to_cells_ptrs = generate_face_to_cells(
+  cell_to_faces_data, cell_to_faces_ptrs)
+  Connections(face_to_cells_data, face_to_cells_ptrs)
 end
 
 function _generate_cell_to_faces(
-  dim::Integer,
   cell_to_vertices::Connections,
   vertex_to_cells::Connections,
-  cell_to_ctype::Vector{<:Integer},
-  ctype_to_refcell::Vector{RefCell})
+  cell_to_ctype::AbstractVector{<:Integer},
+  ctype_to_refcell::Vector{RefCell},
+  dim::Integer)
+
+  ctype_to_lface_to_lvertices = refconnections(ctype_to_refcell, dim)
 
   _generate_cell_to_faces(
     cell_to_vertices,
     vertex_to_cells,
     cell_to_ctype,
-    [ connections(refcell,dim) for refcell in ctype_to_refcell])
+    ctype_to_lface_to_lvertices)
 
 end
 
@@ -398,33 +189,27 @@ function _generate_cell_to_faces(
   cell_to_vertices::Connections,
   vertex_to_cells::Connections,
   cell_to_ctype::AbstractVector{<:Integer},
-  ctype_to_lface_to_lvertices::AbstractVector{<:Connections})
+  ctype_to_lface_to_lvertices::Vector{<:Connections})
 
-  l, p = generate_cell_to_faces(
-    list(cell_to_vertices),
-    ptrs(cell_to_vertices),
-    [ list(c) for c in ctype_to_lface_to_lvertices ],
-    [ ptrs(c) for c in ctype_to_lface_to_lvertices ],
+  cell_to_vertices_data = list(cell_to_vertices)
+  cell_to_vertices_ptrs = ptrs(cell_to_vertices)
+
+  vertex_to_cells_data = list(vertex_to_cells)
+  vertex_to_cells_ptrs = ptrs(vertex_to_cells)
+
+  ctype_to_lface_to_lvertices_data, ctype_to_lface_to_lvertices_ptrs = (
+    split_vector_of_connections( ctype_to_lface_to_lvertices) )
+
+  cell_to_faces_data, cell_to_faces_ptrs = generate_cell_to_faces(
+    cell_to_vertices_data,
+    cell_to_vertices_ptrs,
+    ctype_to_lface_to_lvertices_data,
+    ctype_to_lface_to_lvertices_ptrs,
     cell_to_ctype,
-    list(vertex_to_cells),
-    ptrs(vertex_to_cells))
+    vertex_to_cells_data,
+    vertex_to_cells_ptrs)
 
-  Connections(l,p)
-
-end
-
-function _generate_cell_to_faces_from_faces(
-  dim::Integer,
-  cell_to_vertices::Connections,
-  vertex_to_faces::Connections,
-  cell_to_ctype::Vector{<:Integer},
-  ctype_to_refcell::Vector{RefCell})
-
-  _generate_cell_to_faces_from_faces(
-    cell_to_vertices,
-    vertex_to_faces,
-    cell_to_ctype,
-    [ connections(refcell,dim) for refcell in ctype_to_refcell])
+  Connections(cell_to_faces_data, cell_to_faces_ptrs)
 
 end
 
@@ -432,21 +217,47 @@ function _generate_cell_to_faces_from_faces(
   cell_to_vertices::Connections,
   vertex_to_faces::Connections,
   cell_to_ctype::AbstractVector{<:Integer},
-  ctype_to_lface_to_lvertices::AbstractVector{<:Connections})
+  ctype_to_refcell::Vector{RefCell},
+  dim::Integer)
 
-  l, p = generate_cell_to_faces_from_faces(
-    list(cell_to_vertices),
-    ptrs(cell_to_vertices),
-    [ list(c) for c in ctype_to_lface_to_lvertices ],
-    [ ptrs(c) for c in ctype_to_lface_to_lvertices ],
+  ctype_to_lface_to_lvertices = refconnections(
+    ctype_to_refcell, dim)
+
+  _generate_cell_to_faces_from_faces(
+    cell_to_vertices,
+    vertex_to_faces,
     cell_to_ctype,
-    list(vertex_to_faces),
-    ptrs(vertex_to_faces))
-
-  Connections(l,p)
+    ctype_to_lface_to_lvertices)
 
 end
 
+function _generate_cell_to_faces_from_faces(
+  cell_to_vertices::Connections,
+  vertex_to_faces::Connections,
+  cell_to_ctype::AbstractVector{<:Integer},
+  ctype_to_lface_to_lvertices::Vector{<:Connections})
+
+  cell_to_vertices_data = list(cell_to_vertices)
+  cell_to_vertices_ptrs = ptrs(cell_to_vertices)
+
+  vertex_to_faces_data = list(vertex_to_faces)
+  vertex_to_faces_ptrs = ptrs(vertex_to_faces)
+
+  ctype_to_lface_to_lvertices_data, ctype_to_lface_to_lvertices_ptrs = (
+    split_vector_of_connections( ctype_to_lface_to_lvertices) )
+
+  cell_to_faces_data, cell_to_faces_ptrs = generate_cell_to_faces_from_faces(
+    cell_to_vertices_data,
+    cell_to_vertices_ptrs,
+    ctype_to_lface_to_lvertices_data,
+    ctype_to_lface_to_lvertices_ptrs,
+    cell_to_ctype,
+    vertex_to_faces_data,
+    vertex_to_faces_ptrs)
+
+  Connections(cell_to_faces_data, cell_to_faces_ptrs)
+
+end
 
 function _generate_face_to_vertices(
   dim::Integer,
@@ -520,7 +331,7 @@ function _prepare_ftypes(dim,ctype_to_refcell)
 
   ctype_to_lface_to_ftype = Vector{Vector{Int}}(undef,nctypes)
   for (ctype,refcell) in enumerate(ctype_to_refcell)
-    lface_to_lftype = celltypes(refcell,dim)
+    lface_to_lftype = facetypes(refcell,dim)
     lftype_to_ftype = ctype_to_lftype_to_ftype[ctype]
     lface_to_ftype = lftype_to_ftype[lface_to_lftype]
     ctype_to_lface_to_ftype[ctype] = lface_to_ftype
@@ -531,4 +342,3 @@ function _prepare_ftypes(dim,ctype_to_refcell)
 end
 
 end # module Core
-
