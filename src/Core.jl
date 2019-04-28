@@ -8,6 +8,10 @@ import Base: show
 import UnstructuredGrids.Kernels: generate_face_to_cells
 import UnstructuredGrids.Kernels: generate_cell_to_faces
 import UnstructuredGrids.Kernels: generate_cell_to_faces_from_faces
+import UnstructuredGrids.Kernels: generate_face_to_ftype
+import UnstructuredGrids.Kernels: generate_face_to_vertices
+import UnstructuredGrids.Kernels: generate_face_to_isboundary
+import UnstructuredGrids.Kernels: generate_object_to_isboundary
 
 export Connections
 export RefCell
@@ -23,6 +27,7 @@ export vtkid
 export vtknodes
 export celltypes
 export refcells
+export generate_ftype_to_refface
 
 
 # TODO remove Connections and use a tuple ?
@@ -154,10 +159,10 @@ function Grid(
   cell_to_vertices = connections(grid)
   cell_to_ctype = celltypes(grid)
   ctype_to_refcell = refcells(grid)
-  ftype_to_refface, ctype_to_lface_to_ftype = _prepare_ftypes(dim,ctype_to_refcell)
-  face_to_ftype = _generate_face_to_ftype(
+  ftype_to_refface, ctype_to_lface_to_ftype = generate_ftype_to_refface(dim,ctype_to_refcell)
+  face_to_ftype = generate_face_to_ftype(
     cell_to_faces, cell_to_ctype, ctype_to_lface_to_ftype)
-  face_to_vertices = _generate_face_to_vertices(
+  face_to_vertices = generate_face_to_vertices(
     dim, cell_to_vertices, cell_to_faces, cell_to_ctype, ctype_to_refcell)
   point_to_coords = coordinates(grid)
   Grid(face_to_vertices, face_to_ftype, ftype_to_refface, point_to_coords)
@@ -274,7 +279,7 @@ function _generate_cell_to_faces_from_faces(
 
 end
 
-function _generate_face_to_vertices(
+function generate_face_to_vertices(
   dim::Integer,
   cell_to_vertices::Connections,
   cell_to_faces::Connections,
@@ -303,7 +308,7 @@ function _generate_face_to_vertices(
   Connections(l,p)
 end
 
-function _generate_face_to_ftype(
+function generate_face_to_ftype(
   cell_to_faces::Connections,
   cell_to_ctype::AbstractVector{<:Integer},
   ctype_to_lface_to_ftype::AbstractVector{<:AbstractVector{<:Integer}})
@@ -314,7 +319,7 @@ function _generate_face_to_ftype(
     ctype_to_lface_to_ftype)
 end
 
-function _prepare_ftypes(dim,ctype_to_refcell)
+function generate_ftype_to_refface(dim,ctype_to_refcell)
 
   i_to_refface = Vector{RefCell}(undef,0)
   nctypes = length(ctype_to_refcell)
@@ -353,6 +358,25 @@ function _prepare_ftypes(dim,ctype_to_refcell)
   end
 
   (ftype_to_refface, ctype_to_lface_to_ftype)
+
+end
+
+function generate_face_to_isboundary(face_to_cells::Connections)
+  face_to_cells_ptrs = ptrs(face_to_cells)
+  generate_face_to_isboundary(face_to_cells_ptrs)
+end
+
+function generate_object_to_isboundary(
+  face_to_isboundary::AbstractVector{Bool},
+  object_to_faces::Connections)
+
+  object_to_faces_data = list(object_to_faces)
+  object_to_faces_ptrs = ptrs(object_to_faces)
+
+  generate_object_to_isboundary(
+    face_to_isboundary,
+    object_to_faces_data,
+    object_to_faces_ptrs)
 
 end
 

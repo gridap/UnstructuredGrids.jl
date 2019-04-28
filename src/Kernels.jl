@@ -68,7 +68,7 @@ function generate_cell_to_faces_from_faces(
     vertex_to_faces_ptrs)
 end
 
-function generate_face_to_isboundary(face_to_cells_ptrs)
+function generate_face_to_isboundary(face_to_cells_ptrs::AbstractVector{<:Integer})
   nfaces = length(face_to_cells_ptrs)-1
   face_to_isboundary = fill(false,nfaces)
   _generate_face_to_isboundary_fill!(face_to_isboundary,face_to_cells_ptrs)

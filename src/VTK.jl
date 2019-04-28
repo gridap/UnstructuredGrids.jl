@@ -17,10 +17,10 @@ function writevtk(grid::Grid,filebase;celldata=Dict(),pointdata=Dict())
   cells = _vtkcells(grid)
   vtkfile = vtk_grid(filebase, points, cells, compress=false)
   for (k,v) in celldata
-    vtk_cell_data(vtkfile,v,k)
+    vtk_cell_data(vtkfile,_prepare_data(v),k)
   end
   for (k,v) in pointdata
-    vtk_point_data(vtkfile,v,k)
+    vtk_point_data(vtkfile,_prepare_data(v),k)
   end
   outfiles = vtk_save(vtkfile)
 end
@@ -31,6 +31,15 @@ function writevtk(r::RefCell,filebase)
     grid = Grid(r,dim=d)
     writevtk(grid,f)
   end
+end
+
+_prepare_data(v) = v
+
+function _prepare_data(v::AbstractVector{Bool})
+  b = similar(v,Int)
+  b .= 0
+  b[v] .= 1
+  b
 end
 
 function _vtkcells(grid::Grid)
