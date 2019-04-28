@@ -35,11 +35,9 @@ vertex_to_cells_ptrs = [1,2,  4,  6,  8,        13, 15,16, 18,19]
 cell_to_faces_data = [1,2,3,4,5,4,6,7,6,8,2,9,10,11,8,12,11,13]
 cell_to_faces_ptrs = [1,5,8,11,15,19]
 
-quad_to_lface_to_lvertices_data = [1,2,3,4,1,3,2,4]
-quad_to_lface_to_lvertices_ptrs = [1,3,5,7,9]
+quad_to_lface_to_lvertices = [[1,2],[3,4],[1,3],[2,4]]
 
-tri_to_lface_to_lvertices_data = [1,2,1,3,2,3]
-tri_to_lface_to_lvertices_ptrs = [1,3,5,7]
+tri_to_lface_to_lvertices = [[1,2],[1,3],[2,3]]
 
 quad_to_lface_to_ftype = [1,1,1,1]
 tri_to_lface_to_ftype = [2,2,2]
@@ -48,11 +46,8 @@ quad = 1
 tri = 2
 cell_to_ctype = [quad, tri, tri, quad, quad]
 
-ctype_to_lface_to_lvertices_data = [
-  quad_to_lface_to_lvertices_data, tri_to_lface_to_lvertices_data]
-
-ctype_to_lface_to_lvertices_ptrs = [
-  quad_to_lface_to_lvertices_ptrs, tri_to_lface_to_lvertices_ptrs]
+ctype_to_lface_to_lvertices = [
+  quad_to_lface_to_lvertices, tri_to_lface_to_lvertices]
 
 ctype_to_lface_to_ftype = [quad_to_lface_to_ftype, tri_to_lface_to_ftype]
 

@@ -30,7 +30,6 @@ export refcells
 export generate_ftype_to_refface
 
 
-# TODO remove Connections and use a tuple ?
 struct Connections{L<:AbstractVector{<:Integer},P<:AbstractVector{<:Integer}}
   list::L
   ptrs::P
@@ -43,13 +42,6 @@ ptrs(c::Connections) = c.ptrs
 function Connections(c::AbstractVector{<:AbstractVector{<:Integer}})
   list, ptrs = generate_data_and_ptrs(c)
   Connections(list,ptrs)
-end
-
-function split_vector_of_connections(
-  cs::Vector{<:Connections})
-  cdata = [ list(c) for c in cs ]
-  cptrs = [ ptrs(c) for c in cs ]
-  (cdata, cptrs)
 end
 
 function show(io::IO,c::Connections)
@@ -65,7 +57,7 @@ end
 
 struct RefCell
   ndims::Int
-  faces::Vector{Connections{Vector{Int},Vector{Int}}}#TODO replace by Vector{Vector{Vector{Int}}}
+  faces::Vector{Vector{Vector{Int}}}
   facetypes::Vector{Vector{Int}}
   reffaces::Vector{Vector{RefCell}}
   coordinates::Array{Float64,2}
@@ -101,9 +93,7 @@ function RefCell(;
   @assert ndims == length(reffaces)
   @assert ndims == size(coordinates,1)
 
-  _faces = [ Connections(f) for f in faces ]
-
-  RefCell( ndims, _faces, facetypes, reffaces, coordinates, vtkid, vtknodes)
+  RefCell( ndims, faces, facetypes, reffaces, coordinates, vtkid, vtknodes)
 
 end
 
@@ -148,7 +138,7 @@ function Grid(r::RefCell;dim::Integer)
   celltypes = facetypes(r,dim)
   refcells = reffaces(r,dim)
   coords = coordinates(r)
-  Grid( cells, celltypes, refcells, coords)
+  Grid( Connections(cells), celltypes, refcells, coords)
 end
 
 function Grid(
@@ -195,36 +185,18 @@ function generate_cell_to_faces(
   ctype_to_refcell::Vector{RefCell},
   dim::Integer)
 
-  ctype_to_lface_to_lvertices = refconnections(ctype_to_refcell, dim)
-
-  _generate_cell_to_faces(
-    cell_to_vertices,
-    vertex_to_cells,
-    cell_to_ctype,
-    ctype_to_lface_to_lvertices)
-
-end
-
-function _generate_cell_to_faces(
-  cell_to_vertices::Connections,
-  vertex_to_cells::Connections,
-  cell_to_ctype::AbstractVector{<:Integer},
-  ctype_to_lface_to_lvertices::Vector{<:Connections})
-
   cell_to_vertices_data = list(cell_to_vertices)
   cell_to_vertices_ptrs = ptrs(cell_to_vertices)
 
   vertex_to_cells_data = list(vertex_to_cells)
   vertex_to_cells_ptrs = ptrs(vertex_to_cells)
 
-  ctype_to_lface_to_lvertices_data, ctype_to_lface_to_lvertices_ptrs = (
-    split_vector_of_connections( ctype_to_lface_to_lvertices) )
+  ctype_to_lface_to_lvertices = refconnections(ctype_to_refcell, dim)
 
   cell_to_faces_data, cell_to_faces_ptrs = generate_cell_to_faces(
     cell_to_vertices_data,
     cell_to_vertices_ptrs,
-    ctype_to_lface_to_lvertices_data,
-    ctype_to_lface_to_lvertices_ptrs,
+    ctype_to_lface_to_lvertices,
     cell_to_ctype,
     vertex_to_cells_data,
     vertex_to_cells_ptrs)
@@ -240,37 +212,18 @@ function generate_cell_to_faces_from_faces(
   ctype_to_refcell::Vector{RefCell},
   dim::Integer)
 
-  ctype_to_lface_to_lvertices = refconnections(
-    ctype_to_refcell, dim)
-
-  _generate_cell_to_faces_from_faces(
-    cell_to_vertices,
-    vertex_to_faces,
-    cell_to_ctype,
-    ctype_to_lface_to_lvertices)
-
-end
-
-function _generate_cell_to_faces_from_faces(
-  cell_to_vertices::Connections,
-  vertex_to_faces::Connections,
-  cell_to_ctype::AbstractVector{<:Integer},
-  ctype_to_lface_to_lvertices::Vector{<:Connections})
-
   cell_to_vertices_data = list(cell_to_vertices)
   cell_to_vertices_ptrs = ptrs(cell_to_vertices)
 
   vertex_to_faces_data = list(vertex_to_faces)
   vertex_to_faces_ptrs = ptrs(vertex_to_faces)
 
-  ctype_to_lface_to_lvertices_data, ctype_to_lface_to_lvertices_ptrs = (
-    split_vector_of_connections( ctype_to_lface_to_lvertices) )
+  ctype_to_lface_to_lvertices = refconnections( ctype_to_refcell, dim)
 
   cell_to_faces_data, cell_to_faces_ptrs = generate_cell_to_faces_from_faces(
     cell_to_vertices_data,
     cell_to_vertices_ptrs,
-    ctype_to_lface_to_lvertices_data,
-    ctype_to_lface_to_lvertices_ptrs,
+    ctype_to_lface_to_lvertices,
     cell_to_ctype,
     vertex_to_faces_data,
     vertex_to_faces_ptrs)
@@ -279,34 +232,29 @@ function _generate_cell_to_faces_from_faces(
 
 end
 
+
 function generate_face_to_vertices(
   dim::Integer,
   cell_to_vertices::Connections,
   cell_to_faces::Connections,
   cell_to_ctype::AbstractVector{<:Integer},
   ctype_to_refcell::Vector{RefCell})
-  _generate_face_to_vertices(
-    cell_to_vertices,
-    cell_to_faces,
-    cell_to_ctype,
-    [ connections(refcell,dim) for refcell in ctype_to_refcell])
-end
 
-function _generate_face_to_vertices(
-  cell_to_vertices::Connections,
-  cell_to_faces::Connections,
-  cell_to_ctype::AbstractVector{<:Integer},
-  ctype_to_lface_to_lvertices::AbstractVector{<:Connections})
+
+  ctype_to_lface_to_lvertices = refconnections( ctype_to_refcell, dim)
+
   l, p = generate_face_to_vertices(
     list(cell_to_vertices),
     ptrs(cell_to_vertices),
     list(cell_to_faces),
     ptrs(cell_to_faces),
     cell_to_ctype,
-    [ list(c) for c in ctype_to_lface_to_lvertices ],
-    [ ptrs(c) for c in ctype_to_lface_to_lvertices ])
+    ctype_to_lface_to_lvertices)
+
   Connections(l,p)
+
 end
+
 
 function generate_face_to_ftype(
   cell_to_faces::Connections,

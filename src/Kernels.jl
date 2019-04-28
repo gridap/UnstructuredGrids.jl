@@ -35,16 +35,14 @@ on the boundary of each cell
 function generate_cell_to_faces(
   cell_to_vertices_data::AbstractVector{<:Integer},
   cell_to_vertices_ptrs::AbstractVector{<:Integer},
-  ctype_to_lface_to_lvertices_data::AbstractVector{<:AbstractVector{<:Integer}},
-  ctype_to_lface_to_lvertices_ptrs::AbstractVector{<:AbstractVector{<:Integer}},
+  ctype_to_lface_to_lvertices::Vector{Vector{Vector{Int}}},
   cell_to_ctype::AbstractVector{<:Integer},
   vertex_to_cells_data::AbstractVector{<:Integer},
   vertex_to_cells_ptrs::AbstractVector{<:Integer})
   _cell_to_faces(
     cell_to_vertices_data,
     cell_to_vertices_ptrs,
-    ctype_to_lface_to_lvertices_data,
-    ctype_to_lface_to_lvertices_ptrs,
+    ctype_to_lface_to_lvertices,
     cell_to_ctype,
     vertex_to_cells_data,
     vertex_to_cells_ptrs)
@@ -53,16 +51,14 @@ end
 function generate_cell_to_faces_from_faces(
   cell_to_vertices_data::AbstractVector{<:Integer},
   cell_to_vertices_ptrs::AbstractVector{<:Integer},
-  ctype_to_lface_to_lvertices_data,
-  ctype_to_lface_to_lvertices_ptrs,
+  ctype_to_lface_to_lvertices,
   cell_to_ctype,
   vertex_to_faces_data::AbstractVector{<:Integer},
   vertex_to_faces_ptrs::AbstractVector{<:Integer})
   _cell_to_faces_from_vertex_to_faces(
     cell_to_vertices_data,
     cell_to_vertices_ptrs,
-    ctype_to_lface_to_lvertices_data,
-    ctype_to_lface_to_lvertices_ptrs,
+    ctype_to_lface_to_lvertices,
     cell_to_ctype,
     vertex_to_faces_data,
     vertex_to_faces_ptrs)
@@ -109,8 +105,7 @@ function generate_face_to_vertices(
   cell_to_faces_data::AbstractVector{<:Integer},
   cell_to_faces_ptrs::AbstractVector{<:Integer},
   cell_to_ctype::AbstractVector{<:Integer},
-  ctype_to_lface_to_lvertices_data::AbstractVector{<:AbstractVector{<:Integer}},
-  ctype_to_lface_to_lvertices_ptrs::AbstractVector{<:AbstractVector{<:Integer}},
+  ctype_to_lface_to_lvertices::Vector{Vector{Vector{Int}}},
   nfaces::Int=maximum(cell_to_faces_data))
   _face_to_vertices(
     cell_to_vertices_data,
@@ -118,8 +113,7 @@ function generate_face_to_vertices(
     cell_to_faces_data,
     cell_to_faces_ptrs,
     cell_to_ctype,
-    ctype_to_lface_to_lvertices_data,
-    ctype_to_lface_to_lvertices_ptrs,
+    ctype_to_lface_to_lvertices,
     nfaces)
 end
 
@@ -296,8 +290,7 @@ end
 function _cell_to_faces(
     cell_to_vertices_data::AbstractVector{L},
     cell_to_vertices_ptrs::AbstractVector{P},
-    ctype_to_lface_to_lvertices_data,
-    ctype_to_lface_to_lvertices_ptrs,
+    ctype_to_lface_to_lvertices,
     cell_to_ctype,
     vertex_to_cells_data,
     vertex_to_cells_ptrs) where {L,P}
@@ -305,7 +298,7 @@ function _cell_to_faces(
   cell_to_faces_ptrs = _cell_to_faces_count(
     cell_to_vertices_ptrs,
     cell_to_ctype,
-    ctype_to_lface_to_lvertices_ptrs)
+    ctype_to_lface_to_lvertices)
 
   length_to_ptrs!(cell_to_faces_ptrs)
 
@@ -313,7 +306,7 @@ function _cell_to_faces(
 
   cell_to_faces_data = fill(L(UNSET),ndata)
 
-  nvertices = max_nvertices_in_lface(ctype_to_lface_to_lvertices_ptrs)
+  nvertices = max_nvertices_in_lface(ctype_to_lface_to_lvertices)
   vertices = fill(UNSET,nvertices)
   vertices_scratch = fill(UNSET,nvertices)
 
@@ -327,8 +320,7 @@ function _cell_to_faces(
     cell_to_faces_ptrs,
     cell_to_vertices_data,
     cell_to_vertices_ptrs,
-    ctype_to_lface_to_lvertices_data,
-    ctype_to_lface_to_lvertices_ptrs,
+    ctype_to_lface_to_lvertices,
     cell_to_ctype,
     vertex_to_cells_data,
     vertex_to_cells_ptrs,
@@ -345,8 +337,7 @@ end
 function  _cell_to_faces_from_vertex_to_faces(
   cell_to_vertices_data::AbstractVector{L},
   cell_to_vertices_ptrs::AbstractVector{P},
-  ctype_to_lface_to_lvertices_data,
-  ctype_to_lface_to_lvertices_ptrs,
+  ctype_to_lface_to_lvertices,
   cell_to_ctype,
   vertex_to_faces_data,
   vertex_to_faces_ptrs) where {L,P}
@@ -354,7 +345,7 @@ function  _cell_to_faces_from_vertex_to_faces(
   cell_to_faces_ptrs = _cell_to_faces_count(
     cell_to_vertices_ptrs,
     cell_to_ctype,
-    ctype_to_lface_to_lvertices_ptrs)
+    ctype_to_lface_to_lvertices)
 
   length_to_ptrs!(cell_to_faces_ptrs)
 
@@ -362,7 +353,7 @@ function  _cell_to_faces_from_vertex_to_faces(
 
   cell_to_faces_data = fill(L(UNSET),ndata)
 
-  nvertices = max_nvertices_in_lface(ctype_to_lface_to_lvertices_ptrs)
+  nvertices = max_nvertices_in_lface(ctype_to_lface_to_lvertices)
   vertices = fill(UNSET,nvertices)
 
   nvertices = max_cells_arround_vertex(vertex_to_faces_ptrs)
@@ -374,8 +365,7 @@ function  _cell_to_faces_from_vertex_to_faces(
     cell_to_faces_data,
     cell_to_vertices_data,
     cell_to_vertices_ptrs,
-    ctype_to_lface_to_lvertices_data,
-    ctype_to_lface_to_lvertices_ptrs,
+    ctype_to_lface_to_lvertices,
     cell_to_ctype,
     vertex_to_faces_data,
     vertex_to_faces_ptrs,
@@ -389,13 +379,13 @@ end
 function _cell_to_faces_count(
   cell_to_vertices_ptrs::AbstractVector{P},
   cell_to_ctype,
-  ctype_to_lface_to_lvertices_ptrs) where P
+  ctype_to_lface_to_lvertices) where P
 
   ncells = length(cell_to_vertices_ptrs) - 1
 
   cell_to_faces_ptrs = zeros(P,ncells+1)
 
-  type_to_nlfaces = _type_to_nlfaces(ctype_to_lface_to_lvertices_ptrs)
+  type_to_nlfaces = _type_to_nlfaces(ctype_to_lface_to_lvertices)
 
   _cell_to_faces_count!(
     cell_to_faces_ptrs,
@@ -411,8 +401,7 @@ function _cell_to_faces_fill!(
   cell_to_faces_data,
   cell_to_vertices_data,
   cell_to_vertices_ptrs,
-  ctype_to_lface_to_lvertices_data,
-  ctype_to_lface_to_lvertices_ptrs,
+  ctype_to_lface_to_lvertices,
   cell_to_ctype,
   vertex_to_faces_data,
   vertex_to_faces_ptrs,
@@ -425,9 +414,8 @@ function _cell_to_faces_fill!(
   for cell in 1:ncells
 
     ctype = cell_to_ctype[cell]
-    lface_to_lvertices_data = ctype_to_lface_to_lvertices_data[ctype]
-    lface_to_lvertices_ptrs = ctype_to_lface_to_lvertices_ptrs[ctype]
-    nlfaces = length(lface_to_lvertices_ptrs)-1
+    lface_to_lvertices = ctype_to_lface_to_lvertices[ctype]
+    nlfaces = length(lface_to_lvertices)
     a = cell_to_faces_ptrs[cell]-1
 
     for lface in 1:nlfaces
@@ -435,8 +423,7 @@ function _cell_to_faces_fill!(
       _fill_vertices_in_lface!(
         vertices,
         lface,
-        lface_to_lvertices_data,
-        lface_to_lvertices_ptrs,
+        lface_to_lvertices,
         cell,
         cell_to_vertices_data,
         cell_to_vertices_ptrs)
@@ -461,12 +448,11 @@ function _cell_to_faces_fill!(
 
 end
 
-function max_nvertices_in_lface(ctype_to_lface_to_lvertices_ptrs)
+function max_nvertices_in_lface(ctype_to_lface_to_lvertices)
   n = 0
-  for lface_to_lvertices_ptrs in ctype_to_lface_to_lvertices_ptrs
-    nlfaces = length(lface_to_lvertices_ptrs)-1
-    for lface in 1:nlfaces
-      m = lface_to_lvertices_ptrs[lface+1] - lface_to_lvertices_ptrs[lface]
+  for lface_to_lvertices in ctype_to_lface_to_lvertices
+    for lvertices in lface_to_lvertices
+      m = length(lvertices)
       n = max(n,m)
     end
   end
@@ -483,8 +469,9 @@ function max_cells_arround_vertex(vertex_to_cells_ptrs)
   n
 end
 
-function _type_to_nlfaces(ctype_to_lface_to_lvertices_ptrs)
-  [ length(v)-1 for v in ctype_to_lface_to_lvertices_ptrs ]
+function _type_to_nlfaces(ctype_to_lface_to_lvertices)
+  [ length(lface_to_lvertices)
+   for lface_to_lvertices in ctype_to_lface_to_lvertices]
 end
 
 function _cell_to_faces_count!(
@@ -506,8 +493,7 @@ function  _cell_to_faces_fill!(
     cell_to_faces_ptrs,
     cell_to_vertices_data,
     cell_to_vertices_ptrs,
-    ctype_to_lface_to_lvertices_data,
-    ctype_to_lface_to_lvertices_ptrs,
+    ctype_to_lface_to_lvertices,
     cell_to_ctype,
     vertex_to_cells_data,
     vertex_to_cells_ptrs,
@@ -524,9 +510,8 @@ function  _cell_to_faces_fill!(
   for cell in 1:ncells
 
     ctype = cell_to_ctype[cell]
-    lface_to_lvertices_data = ctype_to_lface_to_lvertices_data[ctype]
-    lface_to_lvertices_ptrs = ctype_to_lface_to_lvertices_ptrs[ctype]
-    nlfaces = length(lface_to_lvertices_ptrs)-1
+    lface_to_lvertices = ctype_to_lface_to_lvertices[ctype]
+    nlfaces = length(lface_to_lvertices)
     a = cell_to_faces_ptrs[cell]-1
 
     for lface in 1:nlfaces
@@ -538,8 +523,7 @@ function  _cell_to_faces_fill!(
       _fill_vertices_in_lface!(
         vertices,
         lface,
-        lface_to_lvertices_data,
-        lface_to_lvertices_ptrs,
+        lface_to_lvertices,
         cell,
         cell_to_vertices_data,
         cell_to_vertices_ptrs)
@@ -555,8 +539,7 @@ function  _cell_to_faces_fill!(
         lface_of_cells_around,
         cells_around,
         lface,
-        ctype_to_lface_to_lvertices_data,
-        ctype_to_lface_to_lvertices_ptrs,
+        ctype_to_lface_to_lvertices,
         cell,
         cell_to_vertices_data,
         cell_to_vertices_ptrs,
@@ -674,8 +657,7 @@ function _find_lface_of_cells_around_lface!(
   lface_of_cells_around,
   cells_around,
   lface,
-  ctype_to_lface_to_lvertices_data,
-  ctype_to_lface_to_lvertices_ptrs,
+  ctype_to_lface_to_lvertices,
   cell,
   cell_to_vertices_data,
   cell_to_vertices_ptrs,
@@ -698,8 +680,7 @@ function _find_lface_of_cells_around_lface!(
       cell_to_vertices_data,
       cell_to_vertices_ptrs,
       cell_to_ctype,
-      ctype_to_lface_to_lvertices_data,
-      ctype_to_lface_to_lvertices_ptrs)
+      ctype_to_lface_to_lvertices)
 
     lface_of_cells_around[icell_around] = lface_of_cell_around
 
@@ -714,14 +695,12 @@ function _find_lface_with_same_vertices(
   cell_to_vertices_data,
   cell_to_vertices_ptrs,
   cell_to_ctype,
-  ctype_to_lface_to_lvertices_data,
-  ctype_to_lface_to_lvertices_ptrs)
+  ctype_to_lface_to_lvertices)
 
   ctype = cell_to_ctype[cell]
-  lface_to_lvertices_data = ctype_to_lface_to_lvertices_data[ctype]
-  lface_to_lvertices_ptrs = ctype_to_lface_to_lvertices_ptrs[ctype]
+  lface_to_lvertices = ctype_to_lface_to_lvertices[ctype]
 
-  nlfaces = length(lface_to_lvertices_ptrs)-1
+  nlfaces = length(lface_to_lvertices)
   c = cell_to_vertices_ptrs[cell]-1
 
   for lface in 1:nlfaces
@@ -729,8 +708,7 @@ function _find_lface_with_same_vertices(
     _fill_vertices_in_lface!(
       vertices_scratch,
       lface,
-      lface_to_lvertices_data,
-      lface_to_lvertices_ptrs,
+      lface_to_lvertices,
       cell,
       cell_to_vertices_data,
       cell_to_vertices_ptrs)
@@ -748,18 +726,17 @@ end
 function _fill_vertices_in_lface!(
   vertices,
   lface,
-  lface_to_lvertices_data,
-  lface_to_lvertices_ptrs,
+  lface_to_lvertices,
   cell,
   cell_to_vertices_data,
   cell_to_vertices_ptrs)
 
   vertices .= UNSET
-  b = lface_to_lvertices_ptrs[lface] - 1
   c = cell_to_vertices_ptrs[cell] - 1
-  nlfvertex = lface_to_lvertices_ptrs[lface+1] - (b + 1)
+  lvertices = lface_to_lvertices[lface]
+  nlfvertex = length(lvertices)
   for lfvertex in 1:nlfvertex
-    lvertex = lface_to_lvertices_data[b+lfvertex]
+    lvertex = lvertices[lfvertex]
     vertex = cell_to_vertices_data[c+lvertex]
     vertices[lfvertex] = vertex
   end
@@ -844,8 +821,7 @@ function _face_to_vertices(
   cell_to_faces_data,
   cell_to_faces_ptrs,
   cell_to_ctype,
-  ctype_to_lface_to_lvertices_data,
-  ctype_to_lface_to_lvertices_ptrs,
+  ctype_to_lface_to_lvertices,
   nfaces) where {L,P}
 
   face_to_vertices_ptrs = fill(P(UNSET),nfaces+1)
@@ -855,7 +831,7 @@ function _face_to_vertices(
     cell_to_faces_data,
     cell_to_faces_ptrs,
     cell_to_ctype,
-    ctype_to_lface_to_lvertices_ptrs)
+    ctype_to_lface_to_lvertices)
 
   length_to_ptrs!(face_to_vertices_ptrs)
   ndata = face_to_vertices_ptrs[end]-1
@@ -869,8 +845,7 @@ function _face_to_vertices(
     cell_to_faces_data,
     cell_to_faces_ptrs,
     cell_to_ctype,
-    ctype_to_lface_to_lvertices_data,
-    ctype_to_lface_to_lvertices_ptrs)
+    ctype_to_lface_to_lvertices)
 
   (face_to_vertices_data, face_to_vertices_ptrs)
 
@@ -881,12 +856,12 @@ function _face_to_vertices_count!(
   cell_to_faces_data,
   cell_to_faces_ptrs,
   cell_to_ctype,
-  ctype_to_lface_to_lvertices_ptrs)
+  ctype_to_lface_to_lvertices)
 
   ncells = length(cell_to_ctype)
   for cell in 1:ncells
     ctype = cell_to_ctype[cell]
-    lface_to_lvertices_ptrs = ctype_to_lface_to_lvertices_ptrs[ctype]
+    lface_to_lvertices = ctype_to_lface_to_lvertices[ctype]
     a = cell_to_faces_ptrs[cell]-1
     nlfaces = cell_to_faces_ptrs[cell+1] - (a + 1)
     for lface in 1:nlfaces
@@ -894,8 +869,7 @@ function _face_to_vertices_count!(
       if face_to_vertices_ptrs[face+1] != UNSET
         continue
       end
-      nfvertices = (
-        lface_to_lvertices_ptrs[lface+1]-lface_to_lvertices_ptrs[lface])
+      nfvertices = length(lface_to_lvertices[lface])
       face_to_vertices_ptrs[face+1] = nfvertices
     end
   end
@@ -910,14 +884,12 @@ function _face_to_vertices_fill!(
   cell_to_faces_data,
   cell_to_faces_ptrs,
   cell_to_ctype,
-  ctype_to_lface_to_lvertices_data,
-  ctype_to_lface_to_lvertices_ptrs)
+  ctype_to_lface_to_lvertices)
 
   ncells = length(cell_to_ctype)
   for cell in 1:ncells
     ctype = cell_to_ctype[cell]
-    lface_to_lvertices_data = ctype_to_lface_to_lvertices_data[ctype]
-    lface_to_lvertices_ptrs = ctype_to_lface_to_lvertices_ptrs[ctype]
+    lface_to_lvertices = ctype_to_lface_to_lvertices[ctype]
     a = cell_to_faces_ptrs[cell]-1
     c = cell_to_vertices_ptrs[cell]-1
     nlfaces = cell_to_faces_ptrs[cell+1] - (a + 1)
@@ -927,10 +899,10 @@ function _face_to_vertices_fill!(
       if face_to_vertices_data[v+1] != UNSET
         continue
       end
-      b = lface_to_lvertices_ptrs[lface]-1
-      nfvertices = lface_to_lvertices_ptrs[lface+1] - (b + 1)
+      lvertices = lface_to_lvertices[lface]
+      nfvertices = length(lvertices)
       for lfvertex in 1:nfvertices
-        lvertex = lface_to_lvertices_data[b+lfvertex]
+        lvertex = lvertices[lfvertex]
         vertex = cell_to_vertices_data[c+lvertex]
         face_to_vertices_data[v+lfvertex] = vertex
       end

@@ -36,8 +36,7 @@ _vertex_to_cells_data, _vertex_to_cells_ptrs = generate_face_to_cells(
 _cell_to_faces_data, _cell_to_faces_ptrs = generate_cell_to_faces(
   cell_to_vertices_data,
   cell_to_vertices_ptrs,
-  ctype_to_lface_to_lvertices_data,
-  ctype_to_lface_to_lvertices_ptrs,
+  ctype_to_lface_to_lvertices,
   cell_to_ctype,
   vertex_to_cells_data,
   vertex_to_cells_ptrs)
@@ -59,8 +58,7 @@ _face_to_vertices_data, _face_to_vertices_ptrs = generate_face_to_vertices(
   cell_to_faces_data,
   cell_to_faces_ptrs,
   cell_to_ctype,
-  ctype_to_lface_to_lvertices_data,
-  ctype_to_lface_to_lvertices_ptrs)
+  ctype_to_lface_to_lvertices)
 
 @test face_to_vertices_data == _face_to_vertices_data
 @test face_to_vertices_ptrs == _face_to_vertices_ptrs
@@ -78,8 +76,7 @@ vertex_to_faces_data, vertex_to_faces_ptrs = generate_face_to_cells(
 _cell_to_faces_data, _cell_to_faces_ptrs = generate_cell_to_faces_from_faces(
   cell_to_vertices_data,
   cell_to_vertices_ptrs,
-  ctype_to_lface_to_lvertices_data,
-  ctype_to_lface_to_lvertices_ptrs,
+  ctype_to_lface_to_lvertices,
   cell_to_ctype,
   vertex_to_faces_data,
   vertex_to_faces_ptrs)
