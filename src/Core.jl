@@ -5,6 +5,9 @@ using UnstructuredGrids.Kernels
 
 import Base: ndims
 import Base: show
+import UnstructuredGrids.Kernels: generate_face_to_cells
+import UnstructuredGrids.Kernels: generate_cell_to_faces
+import UnstructuredGrids.Kernels: generate_cell_to_faces_from_faces
 
 export Connections
 export RefCell
@@ -22,6 +25,7 @@ export celltypes
 export refcells
 
 
+# TODO remove Connections and use a tuple ?
 struct Connections{L<:AbstractVector{<:Integer},P<:AbstractVector{<:Integer}}
   list::L
   ptrs::P
@@ -56,7 +60,7 @@ end
 
 struct RefCell
   ndims::Int
-  faces::Vector{Connections{Vector{Int},Vector{Int}}}
+  faces::Vector{Connections{Vector{Int},Vector{Int}}}#TODO replace by Vector{Vector{Vector{Int}}}
   facetypes::Vector{Vector{Int}}
   reffaces::Vector{Vector{RefCell}}
   coordinates::Array{Float64,2}
@@ -144,13 +148,12 @@ end
 
 function Grid(
   grid::Grid,
-  vertex_to_cells=_generate_face_to_cells(connections(grid));
-  dim::Integer)
+  dim::Integer,
+  vertex_to_cells=generate_face_to_cells(connections(grid)),
+  cell_to_faces=generate_cell_to_faces(dim,grid,vertex_to_cells))
   cell_to_vertices = connections(grid)
   cell_to_ctype = celltypes(grid)
   ctype_to_refcell = refcells(grid)
-  cell_to_faces = _generate_cell_to_faces(
-      cell_to_vertices, vertex_to_cells, cell_to_ctype, ctype_to_refcell,dim)
   ftype_to_refface, ctype_to_lface_to_ftype = _prepare_ftypes(dim,ctype_to_refcell)
   face_to_ftype = _generate_face_to_ftype(
     cell_to_faces, cell_to_ctype, ctype_to_lface_to_ftype)
@@ -160,7 +163,7 @@ function Grid(
   Grid(face_to_vertices, face_to_ftype, ftype_to_refface, point_to_coords)
 end
 
-function _generate_face_to_cells(cell_to_faces::Connections)
+function generate_face_to_cells(cell_to_faces::Connections)
   cell_to_faces_data = list(cell_to_faces)
   cell_to_faces_ptrs = ptrs(cell_to_faces)
   face_to_cells_data, face_to_cells_ptrs = generate_face_to_cells(
@@ -168,7 +171,19 @@ function _generate_face_to_cells(cell_to_faces::Connections)
   Connections(face_to_cells_data, face_to_cells_ptrs)
 end
 
-function _generate_cell_to_faces(
+function generate_cell_to_faces(
+  dim::Integer,
+  grid::Grid,
+  vertex_to_cells=generate_face_to_cells(connections(grid)))
+  cell_to_vertices = connections(grid)
+  cell_to_ctype = celltypes(grid)
+  ctype_to_refcell = refcells(grid)
+  cell_to_faces = generate_cell_to_faces(
+      cell_to_vertices, vertex_to_cells, cell_to_ctype, ctype_to_refcell,dim)
+  cell_to_faces
+end
+
+function generate_cell_to_faces(
   cell_to_vertices::Connections,
   vertex_to_cells::Connections,
   cell_to_ctype::AbstractVector{<:Integer},
@@ -213,7 +228,7 @@ function _generate_cell_to_faces(
 
 end
 
-function _generate_cell_to_faces_from_faces(
+function generate_cell_to_faces_from_faces(
   cell_to_vertices::Connections,
   vertex_to_faces::Connections,
   cell_to_ctype::AbstractVector{<:Integer},
