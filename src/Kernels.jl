@@ -7,7 +7,7 @@ export generate_cell_to_faces
 export generate_face_to_ftype
 export generate_face_to_vertices
 export generate_cell_to_faces_from_faces
-export generate_face_to_isboundary
+export generate_facet_to_isboundary
 export generate_object_to_isboundary
 export rewind_ptrs!
 export length_to_ptrs!
@@ -64,7 +64,7 @@ function generate_cell_to_faces_from_faces(
     vertex_to_faces_ptrs)
 end
 
-function generate_face_to_isboundary(face_to_cells_ptrs::AbstractVector{<:Integer})
+function generate_facet_to_isboundary(face_to_cells_ptrs::AbstractVector{<:Integer})
   nfaces = length(face_to_cells_ptrs)-1
   face_to_isboundary = fill(false,nfaces)
   _generate_face_to_isboundary_fill!(face_to_isboundary,face_to_cells_ptrs)

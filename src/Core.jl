@@ -10,7 +10,7 @@ import UnstructuredGrids.Kernels: generate_cell_to_faces
 import UnstructuredGrids.Kernels: generate_cell_to_faces_from_faces
 import UnstructuredGrids.Kernels: generate_face_to_ftype
 import UnstructuredGrids.Kernels: generate_face_to_vertices
-import UnstructuredGrids.Kernels: generate_face_to_isboundary
+import UnstructuredGrids.Kernels: generate_facet_to_isboundary
 import UnstructuredGrids.Kernels: generate_object_to_isboundary
 
 export Connections
@@ -309,9 +309,9 @@ function generate_ftype_to_refface(dim,ctype_to_refcell)
 
 end
 
-function generate_face_to_isboundary(face_to_cells::Connections)
+function generate_facet_to_isboundary(face_to_cells::Connections)
   face_to_cells_ptrs = ptrs(face_to_cells)
-  generate_face_to_isboundary(face_to_cells_ptrs)
+  generate_facet_to_isboundary(face_to_cells_ptrs)
 end
 
 function generate_object_to_isboundary(

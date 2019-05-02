@@ -85,7 +85,7 @@ p = [1, 5, 9, 13, 17]
 
 face_to_cells = generate_dual_connections(cell_to_faces)
 
-_face_to_isboundary = generate_face_to_isboundary(face_to_cells)
+_face_to_isboundary = generate_facet_to_isboundary(face_to_cells)
 
 face_to_isboundary = Bool[
   true, false, true, false, true, false, true, true, true, false, true, true]

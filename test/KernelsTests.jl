@@ -87,7 +87,7 @@ _cell_to_faces_data, _cell_to_faces_ptrs = generate_cell_to_faces_from_faces(
 face_to_cells_data, face_to_cells_ptrs = generate_dual_connections(
   cell_to_faces_data, cell_to_faces_ptrs)
 
-_face_to_isboundary = generate_face_to_isboundary(face_to_cells_ptrs)
+_face_to_isboundary = generate_facet_to_isboundary(face_to_cells_ptrs)
 
 @test face_to_isboundary == _face_to_isboundary
 
