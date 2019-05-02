@@ -27,7 +27,7 @@ length_to_ptrs!(a)
 
 include("Mock2D.jl")
 
-_vertex_to_cells_data, _vertex_to_cells_ptrs = generate_face_to_cells(
+_vertex_to_cells_data, _vertex_to_cells_ptrs = generate_dual_connections(
   cell_to_vertices_data,cell_to_vertices_ptrs)
 
 @test _vertex_to_cells_data == vertex_to_cells_data
@@ -70,7 +70,7 @@ pc = append_ptrs(pa,pb)
 
 @test pc == [1, 3, 5, 7, 9, 11, 13, 15]
 
-vertex_to_faces_data, vertex_to_faces_ptrs = generate_face_to_cells(
+vertex_to_faces_data, vertex_to_faces_ptrs = generate_dual_connections(
   face_to_vertices_data,face_to_vertices_ptrs)
 
 _cell_to_faces_data, _cell_to_faces_ptrs = generate_cell_to_faces_from_faces(
@@ -84,7 +84,7 @@ _cell_to_faces_data, _cell_to_faces_ptrs = generate_cell_to_faces_from_faces(
 @test cell_to_faces_data == _cell_to_faces_data
 @test cell_to_faces_ptrs == _cell_to_faces_ptrs
 
-face_to_cells_data, face_to_cells_ptrs = generate_face_to_cells(
+face_to_cells_data, face_to_cells_ptrs = generate_dual_connections(
   cell_to_faces_data, cell_to_faces_ptrs)
 
 _face_to_isboundary = generate_face_to_isboundary(face_to_cells_ptrs)

@@ -29,7 +29,7 @@ p = [1, 5, 9, 13, 17]
 @test list(c) == l
 @test ptrs(c) == p
 
-vertex_to_cells = generate_face_to_cells(cell_to_vertices)
+vertex_to_cells = generate_dual_connections(cell_to_vertices)
 
 c = vertex_to_cells
 l = [1, 1, 2, 2, 1, 3, 1, 2, 3, 4, 2, 4, 3, 3, 4, 4]
@@ -72,7 +72,7 @@ c = face_to_vertices
 @test list(c) == l
 @test ptrs(c) == p
 
-vertex_to_faces = generate_face_to_cells(face_to_vertices)
+vertex_to_faces = generate_dual_connections(face_to_vertices)
 
 cell_to_faces = generate_cell_to_faces_from_faces(
   cell_to_vertices, vertex_to_faces, cell_to_ctype, ctype_to_refcell, 1)
@@ -83,7 +83,7 @@ p = [1, 5, 9, 13, 17]
 @test list(c) == l
 @test ptrs(c) == p
 
-face_to_cells = generate_face_to_cells(cell_to_faces)
+face_to_cells = generate_dual_connections(cell_to_faces)
 
 _face_to_isboundary = generate_face_to_isboundary(face_to_cells)
 

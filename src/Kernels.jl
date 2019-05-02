@@ -2,7 +2,7 @@ module Kernels
 
 using UnstructuredGrids.Helpers
 
-export generate_face_to_cells
+export generate_dual_connections
 export generate_cell_to_faces
 export generate_face_to_ftype
 export generate_face_to_vertices
@@ -19,7 +19,7 @@ export append_ptrs
 Given the faces on the boundary of each cell,
 find the cells around each face.
 """
-function generate_face_to_cells(
+function generate_dual_connections(
   cell_to_faces_data::AbstractVector{<:Integer},
   cell_to_faces_ptrs::AbstractVector{<:Integer},
   nfaces = maximum(cell_to_faces_data))

@@ -5,7 +5,7 @@ using UnstructuredGrids.Kernels
 
 import Base: ndims
 import Base: show
-import UnstructuredGrids.Kernels: generate_face_to_cells
+import UnstructuredGrids.Kernels: generate_dual_connections
 import UnstructuredGrids.Kernels: generate_cell_to_faces
 import UnstructuredGrids.Kernels: generate_cell_to_faces_from_faces
 import UnstructuredGrids.Kernels: generate_face_to_ftype
@@ -144,7 +144,7 @@ end
 function Grid(
   grid::Grid,
   dim::Integer,
-  vertex_to_cells=generate_face_to_cells(connections(grid)),
+  vertex_to_cells=generate_dual_connections(connections(grid)),
   cell_to_faces=generate_cell_to_faces(dim,grid,vertex_to_cells))
   cell_to_vertices = connections(grid)
   cell_to_ctype = celltypes(grid)
@@ -158,10 +158,10 @@ function Grid(
   Grid(face_to_vertices, face_to_ftype, ftype_to_refface, point_to_coords)
 end
 
-function generate_face_to_cells(cell_to_faces::Connections)
+function generate_dual_connections(cell_to_faces::Connections)
   cell_to_faces_data = list(cell_to_faces)
   cell_to_faces_ptrs = ptrs(cell_to_faces)
-  face_to_cells_data, face_to_cells_ptrs = generate_face_to_cells(
+  face_to_cells_data, face_to_cells_ptrs = generate_dual_connections(
   cell_to_faces_data, cell_to_faces_ptrs)
   Connections(face_to_cells_data, face_to_cells_ptrs)
 end
@@ -169,7 +169,7 @@ end
 function generate_cell_to_faces(
   dim::Integer,
   grid::Grid,
-  vertex_to_cells=generate_face_to_cells(connections(grid)))
+  vertex_to_cells=generate_dual_connections(connections(grid)))
   cell_to_vertices = connections(grid)
   cell_to_ctype = celltypes(grid)
   ctype_to_refcell = refcells(grid)
