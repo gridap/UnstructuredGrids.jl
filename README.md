@@ -51,7 +51,7 @@ vertex_to_coords = coordinates(grid)
 @assert size(vertex_to_coords) == (3,36)
 
 # Find cells around each vertex
-vertex_to_cells = generate_face_to_cells(cell_to_vertices)
+vertex_to_cells = generate_dual_connections(cell_to_vertices)
 
 # The returned data is a vector of vectors represented by a Connections object
 @assert isa(vertex_to_cells, Connections)
