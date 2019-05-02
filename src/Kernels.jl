@@ -8,7 +8,7 @@ export generate_face_to_ftype
 export generate_face_to_vertices
 export generate_cell_to_faces_from_faces
 export generate_facet_to_isboundary
-export generate_object_to_isboundary
+export generate_face_to_isboundary
 export rewind_ptrs!
 export length_to_ptrs!
 export generate_data_and_ptrs
@@ -71,17 +71,17 @@ function generate_facet_to_isboundary(face_to_cells_ptrs::AbstractVector{<:Integ
   face_to_isboundary
 end
 
-function generate_object_to_isboundary(
+function generate_face_to_isboundary(
   facet_to_isboundary::AbstractVector{Bool},
-  object_to_facets_data::AbstractVector{<:Integer},
-  object_to_facets_ptrs::AbstractVector{<:Integer})
-  nobjects = length(object_to_facets_ptrs)-1
+  face_to_facets_data::AbstractVector{<:Integer},
+  face_to_facets_ptrs::AbstractVector{<:Integer})
+  nobjects = length(face_to_facets_ptrs)-1
   object_to_isboundary = fill(false,nobjects)
   _generate_object_to_isboundary_fill!(
     object_to_isboundary,
     facet_to_isboundary,
-    object_to_facets_data,
-    object_to_facets_ptrs)
+    face_to_facets_data,
+    face_to_facets_ptrs)
   object_to_isboundary
 end
 

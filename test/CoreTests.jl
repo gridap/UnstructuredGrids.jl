@@ -92,7 +92,7 @@ face_to_isboundary = Bool[
 
 @test face_to_isboundary == _face_to_isboundary
 
-_vertex_to_isboundary = generate_object_to_isboundary(
+_vertex_to_isboundary = generate_face_to_isboundary(
   face_to_isboundary, vertex_to_faces)
 
 vertex_to_isboundary = Bool[

@@ -91,7 +91,7 @@ _face_to_isboundary = generate_facet_to_isboundary(face_to_cells_ptrs)
 
 @test face_to_isboundary == _face_to_isboundary
 
-_vertex_to_isboundary = generate_object_to_isboundary(
+_vertex_to_isboundary = generate_face_to_isboundary(
   face_to_isboundary,
   vertex_to_faces_data,
   vertex_to_faces_ptrs)
