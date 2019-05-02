@@ -72,16 +72,16 @@ function generate_facet_to_isboundary(face_to_cells_ptrs::AbstractVector{<:Integ
 end
 
 function generate_object_to_isboundary(
-  face_to_isboundary::AbstractVector{Bool},
-  object_to_faces_data::AbstractVector{<:Integer},
-  object_to_faces_ptrs::AbstractVector{<:Integer})
-  nobjects = length(object_to_faces_ptrs)-1
+  facet_to_isboundary::AbstractVector{Bool},
+  object_to_facets_data::AbstractVector{<:Integer},
+  object_to_facets_ptrs::AbstractVector{<:Integer})
+  nobjects = length(object_to_facets_ptrs)-1
   object_to_isboundary = fill(false,nobjects)
   _generate_object_to_isboundary_fill!(
     object_to_isboundary,
-    face_to_isboundary,
-    object_to_faces_data,
-    object_to_faces_ptrs)
+    facet_to_isboundary,
+    object_to_facets_data,
+    object_to_facets_ptrs)
   object_to_isboundary
 end
 
