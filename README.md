@@ -20,7 +20,7 @@ using UnstructuredGrids
 
 # Generate a toy structured grid of the unit cube
 # with 2x3x2 quadrilateral cells
-grid = Grid(domain=(0,1,0,1,0,1),partition=(2,3,2))
+grid = UGrid(domain=(0,1,0,1,0,1),partition=(2,3,2))
 
 # Get the connectivity of the cells of the grid (i.e., for each cell, the ids of its vertices)
 cell_to_vertices = connections(grid)

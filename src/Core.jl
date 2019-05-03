@@ -15,7 +15,7 @@ import UnstructuredGrids.Kernels: generate_face_to_isboundary
 
 export Connections
 export RefCell
-export Grid
+export UGrid
 export VERTEX
 export list
 export ptrs
@@ -100,7 +100,7 @@ end
 const VERTEX = RefCell(
   ndims = 0, faces = fill([Int[]],0), vtkid = 1, vtknodes = [1] )
 
-struct Grid{
+struct UGrid{
   C<:Connections,
   T<:AbstractVector{<:Integer},
   X<:AbstractArray{<:Number,2}}
@@ -112,15 +112,15 @@ struct Grid{
 
 end
 
-connections(g::Grid) = g.cells
+connections(g::UGrid) = g.cells
 
-celltypes(g::Grid) = g.celltypes
+celltypes(g::UGrid) = g.celltypes
 
-refcells(g::Grid) = g.refcells
+refcells(g::UGrid) = g.refcells
 
-coordinates(g::Grid) = g.coordinates
+coordinates(g::UGrid) = g.coordinates
 
-function refconnections(g::Grid,dim::Integer)
+function refconnections(g::UGrid,dim::Integer)
   refconnections(refcells(g),dim)
 end
 
@@ -128,21 +128,21 @@ function refconnections(refcells::Vector{RefCell}, dim::Integer)
   [ connections(refcell,dim) for refcell in refcells ]
 end
 
-function Grid( cellsdata, cellsptrs, celltypes, refcells, coordinates)
+function UGrid( cellsdata, cellsptrs, celltypes, refcells, coordinates)
   cells = Connections(cellsdata, cellsptrs)
-  Grid( cells, celltypes, refcells, coordinates)
+  UGrid( cells, celltypes, refcells, coordinates)
 end
 
-function Grid(r::RefCell;dim::Integer)
+function UGrid(r::RefCell;dim::Integer)
   cells = connections(r,dim)
   celltypes = facetypes(r,dim)
   refcells = reffaces(r,dim)
   coords = coordinates(r)
-  Grid( Connections(cells), celltypes, refcells, coords)
+  UGrid( Connections(cells), celltypes, refcells, coords)
 end
 
-function Grid(
-  grid::Grid,
+function UGrid(
+  grid::UGrid,
   dim::Integer,
   vertex_to_cells=generate_dual_connections(connections(grid)),
   cell_to_faces=generate_cell_to_faces(dim,grid,vertex_to_cells))
@@ -155,7 +155,7 @@ function Grid(
   face_to_vertices = generate_face_to_vertices(
     dim, cell_to_vertices, cell_to_faces, cell_to_ctype, ctype_to_refcell)
   point_to_coords = coordinates(grid)
-  Grid(face_to_vertices, face_to_ftype, ftype_to_refface, point_to_coords)
+  UGrid(face_to_vertices, face_to_ftype, ftype_to_refface, point_to_coords)
 end
 
 function generate_dual_connections(cell_to_faces::Connections)
@@ -168,7 +168,7 @@ end
 
 function generate_cell_to_faces(
   dim::Integer,
-  grid::Grid,
+  grid::UGrid,
   vertex_to_cells=generate_dual_connections(connections(grid)))
   cell_to_vertices = connections(grid)
   cell_to_ctype = celltypes(grid)

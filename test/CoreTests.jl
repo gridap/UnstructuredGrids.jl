@@ -15,7 +15,7 @@ s = """
     """
 @test s == string(c)
 
-grid = Grid(domain=(0,1,-1,0),partition=(2,2))
+grid = UGrid(domain=(0,1,-1,0),partition=(2,2))
 
 cell_to_ctype = celltypes(grid)
 
@@ -46,7 +46,7 @@ p = [1, 5, 9, 13, 17]
 @test list(c) == l
 @test ptrs(c) == p
 
-fgrid = Grid(grid,1)
+fgrid = UGrid(grid,1)
 
 face_to_vertices = connections(fgrid)
 
@@ -56,7 +56,7 @@ p = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25]
 @test list(c) == l
 @test ptrs(c) == p
 
-fgrid = Grid(grid,1,vertex_to_cells)
+fgrid = UGrid(grid,1,vertex_to_cells)
 
 face_to_vertices = connections(fgrid)
 
@@ -64,7 +64,7 @@ c = face_to_vertices
 @test list(c) == l
 @test ptrs(c) == p
 
-fgrid = Grid(grid,1,vertex_to_cells,cell_to_faces)
+fgrid = UGrid(grid,1,vertex_to_cells,cell_to_faces)
 
 face_to_vertices = connections(fgrid)
 

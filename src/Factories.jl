@@ -9,9 +9,9 @@ using UnstructuredGrids.Core
 # The following mesh generation routines are mainly for
 # testing purposes.
 
-import UnstructuredGrids.Core: Grid
+import UnstructuredGrids.Core: UGrid
 
-function Grid(;domain,partition)
+function UGrid(;domain,partition)
   _cartesian_grid(domain,partition)
 end
 
@@ -52,7 +52,7 @@ function _cartesian_grid(domain,partition)
   points, celldata, cellptrs, celltypes, refcells = _cartesian_allocate(partition,refcell)
   _cartesian_fill_points!(points,domain,partition)
   _cartesian_fill_cells!(celldata,partition)
-  Grid(celldata,cellptrs,celltypes,refcells,points)
+  UGrid(celldata,cellptrs,celltypes,refcells,points)
 end
 
 function _cartesian_allocate(partition::NTuple{D,Int},refcell) where D

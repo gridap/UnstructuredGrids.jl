@@ -7,7 +7,7 @@ include("Factories.jl")
 include("VTK.jl")
 
 export Connections
-export Grid
+export UGrid
 export connections
 export coordinates
 export writevtk
@@ -16,7 +16,7 @@ export generate_dual_connections
 export generate_cell_to_faces
 
 using UnstructuredGrids.Core: Connections
-using UnstructuredGrids.Core: Grid
+using UnstructuredGrids.Core: UGrid
 using UnstructuredGrids.Core: list, ptrs
 using UnstructuredGrids.Core: connections
 using UnstructuredGrids.Core: coordinates

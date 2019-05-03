@@ -9,19 +9,19 @@ using UnstructuredGrids.Factories: HEXAHEDRON
 d = mktempdir()
 f = joinpath(d,"grid")
 
-grid = Grid(domain=(0,1,-1,0),partition=(2,2))
+grid = UGrid(domain=(0,1,-1,0),partition=(2,2))
 
 writevtk(grid,f)
 
-grid = Grid(domain=(0,1,-1,0,2,4),partition=(2,3,4))
+grid = UGrid(domain=(0,1,-1,0,2,4),partition=(2,3,4))
 
 writevtk(grid,f)
 
-fgrid = Grid(grid,2)
+fgrid = UGrid(grid,2)
 
 writevtk(fgrid,f)
 
-fgrid = Grid(grid,1)
+fgrid = UGrid(grid,1)
 
 writevtk(fgrid,f)
 
