@@ -5,6 +5,7 @@ using UnstructuredGrids.Kernels
 
 import Base: ndims
 import Base: show
+import Base: ==
 import UnstructuredGrids.Kernels: generate_dual_connections
 import UnstructuredGrids.Kernels: generate_cell_to_faces
 import UnstructuredGrids.Kernels: find_cell_to_faces
@@ -28,6 +29,8 @@ export vtknodes
 export celltypes
 export refcells
 export generate_ftype_to_refface
+export generate_grid_graph
+export generate_full_grid_graph
 
 
 struct Connections{L<:AbstractVector{<:Integer},P<:AbstractVector{<:Integer}}
@@ -53,6 +56,10 @@ function show(io::IO,c::Connections)
     b = cptrs[cell+1]-1
     println(io,"$cell -> $(clist[a:b])")
   end
+end
+
+function (==)(a::Connections,b::Connections)
+  a.list == b.list && a.ptrs == b.ptrs
 end
 
 struct RefCell
@@ -354,5 +361,67 @@ function generate_face_to_isboundary(
     face_to_facets_ptrs)
 
 end
+
+function generate_grid_graph(grid::UGrid)
+
+  D = ndims(grid)
+  cell_to_vertices = connections(grid)
+  vertex_to_cells = generate_dual_connections(cell_to_vertices)
+
+  T = typeof(cell_to_vertices)
+  primal = Vector{T}(undef,D+1)
+  dual = Vector{T}(undef,D+1)
+
+  d = 0
+  primal[d+1] = cell_to_vertices
+  dual[d+1] = vertex_to_cells
+
+  for d in 1:(D-1)
+    cell_to_dfaces = generate_cell_to_faces( d, grid, vertex_to_cells)
+    dfaces_to_cells = generate_dual_connections(cell_to_dfaces)
+    primal[d+1] = cell_to_dfaces
+    dual[d+1] = dfaces_to_cells
+  end
+
+  (primal, dual)
+
+end
+
+function generate_full_grid_graph(grid::UGrid)
+
+  D = ndims(grid)
+  data = Array{Connections}(undef,D+1,D+1)
+
+  primal, dual = generate_grid_graph(grid)
+  for d in 0:(D-1)
+    data[D+1,d+1] = primal[d+1]
+    data[d+1,D+1] = dual[d+1]
+  end
+
+  fgrids = [ UGrid(grid,d,dual[0+1],primal[d+1]) for d in 1:(D-1)]
+  for d in 1:(D-1)
+    fgrid = fgrids[d]
+    face_to_vertices = connections(fgrid)
+    vertex_to_faces = generate_dual_connections(face_to_vertices)
+    data[d+1,0+1] = face_to_vertices
+    data[0+1,d+1] = vertex_to_faces
+  end
+
+  for d in 1:(D-1)
+    fgrid = fgrids[d]
+    for j in 1:(d-1)
+      vertex_to_jfaces = data[0+1,j+1]
+      face_to_jfaces = find_cell_to_faces(fgrid, vertex_to_jfaces, j)
+      jface_to_faces = generate_dual_connections(face_to_jfaces)
+      data[d+1,j+1] = face_to_jfaces
+      data[j+1,d+1] = jface_to_faces
+    end
+  end
+
+  data
+
+end
+
+# Helpers
 
 end # module Core

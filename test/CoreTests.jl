@@ -108,4 +108,27 @@ vertex_to_isboundary = Bool[
 
 @test vertex_to_isboundary == _vertex_to_isboundary
 
+primal, dual = generate_grid_graph(grid)
+
+@test primal[1+1] == cell_to_faces
+@test primal[0+1] == cell_to_vertices
+
+@test dual[1+1] == face_to_cells
+@test dual[0+1] == vertex_to_cells
+
+fullgraph = generate_full_grid_graph(grid)
+
+@test fullgraph[2+1,1+1] == cell_to_faces
+@test fullgraph[1+1,2+1] == face_to_cells
+
+@test fullgraph[1+1,0+1] == face_to_vertices
+@test fullgraph[0+1,1+1] == vertex_to_faces
+
+@test fullgraph[2+1,0+1] == cell_to_vertices
+@test fullgraph[0+1,2+1] == vertex_to_cells
+
+grid = UGrid(domain=(0,1,-1,0,0,1),partition=(2,2,2))
+
+fullgraph = generate_full_grid_graph(grid)
+
 end # module CoreTests

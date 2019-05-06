@@ -17,6 +17,8 @@ export list, ptrs
 export generate_dual_connections
 export generate_cell_to_faces
 export find_cell_to_faces
+export generate_grid_graph
+export generate_full_grid_graph
 
 using UnstructuredGrids.Core: Connections
 using UnstructuredGrids.Core: UGrid
@@ -29,5 +31,7 @@ using UnstructuredGrids.VTK: writevtk
 using UnstructuredGrids.Kernels: generate_dual_connections
 using UnstructuredGrids.Kernels: generate_cell_to_faces
 using UnstructuredGrids.Kernels: find_cell_to_faces
+using UnstructuredGrids.Core: generate_grid_graph
+using UnstructuredGrids.Core: generate_full_grid_graph
 
 end # module UnstructuredGrids
