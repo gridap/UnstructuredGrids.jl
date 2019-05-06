@@ -23,6 +23,8 @@ ctype_to_refcell = refcells(grid)
 
 cell_to_vertices = connections(grid)
 
+@test ndims(grid) == 2
+
 c = cell_to_vertices
 l = [1, 2, 4, 5, 2, 3, 5, 6, 4, 5, 7, 8, 5, 6, 8, 9]
 p = [1, 5, 9, 13, 17]
@@ -47,6 +49,8 @@ p = [1, 5, 9, 13, 17]
 @test ptrs(c) == p
 
 fgrid = UGrid(grid,1)
+
+@test ndims(fgrid) == 1
 
 face_to_vertices = connections(fgrid)
 
@@ -82,6 +86,10 @@ l = [1, 2, 3, 4, 5, 6, 4, 7, 2, 8, 9, 10, 6, 11, 10, 12]
 p = [1, 5, 9, 13, 17]
 @test list(c) == l
 @test ptrs(c) == p
+
+cell_to_faces = find_cell_to_faces(grid,fgrid)
+@test c.list == cell_to_faces.list
+@test c.ptrs == cell_to_faces.ptrs
 
 face_to_cells = generate_dual_connections(cell_to_faces)
 

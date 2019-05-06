@@ -65,7 +65,7 @@ struct RefCell
   vtknodes::Vector{Int}
 end
 
-ndims(r::RefCell)::Integer = r.ndims
+ndims(r::RefCell) = r.ndims
 
 connections(r::RefCell, dim::Integer) =r.faces[dim+1]
 
@@ -120,6 +120,10 @@ refcells(g::UGrid) = g.refcells
 
 coordinates(g::UGrid) = g.coordinates
 
+function ndims(g::UGrid)
+  maximum((ndims(r) for r in refcells(g)))
+end
+
 function refconnections(g::UGrid,dim::Integer)
   refconnections(refcells(g),dim)
 end
@@ -157,6 +161,7 @@ function UGrid(
   point_to_coords = coordinates(grid)
   UGrid(face_to_vertices, face_to_ftype, ftype_to_refface, point_to_coords)
 end
+
 
 function generate_dual_connections(cell_to_faces::Connections)
   cell_to_faces_data = list(cell_to_faces)
@@ -232,6 +237,28 @@ function find_cell_to_faces(
 
 end
 
+function find_cell_to_faces(grid::UGrid, fgrid::UGrid)
+  face_to_vertices = connections(fgrid)
+  vertex_to_faces = generate_dual_connections(face_to_vertices)
+  dim = ndims(fgrid)
+  find_cell_to_faces(grid, vertex_to_faces, dim)
+end
+
+function find_cell_to_faces(
+  grid::UGrid,
+  vertex_to_faces::Connections,
+  dim::Integer)
+
+  cell_to_vertices = connections(grid)
+  cell_to_ctype = celltypes(grid)
+  ctype_to_refcell = refcells(grid)
+  find_cell_to_faces(
+    cell_to_vertices,
+    vertex_to_faces,
+    cell_to_ctype,
+    ctype_to_refcell,
+    dim)
+end
 
 function generate_face_to_vertices(
   dim::Integer,
