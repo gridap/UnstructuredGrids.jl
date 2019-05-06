@@ -6,7 +6,7 @@ export generate_dual_connections
 export generate_cell_to_faces
 export generate_face_to_ftype
 export generate_face_to_vertices
-export generate_cell_to_faces_from_faces
+export find_cell_to_faces
 export generate_facet_to_isboundary
 export generate_face_to_isboundary
 export rewind_ptrs!
@@ -48,7 +48,7 @@ function generate_cell_to_faces(
     vertex_to_cells_ptrs)
 end
 
-function generate_cell_to_faces_from_faces(
+function find_cell_to_faces(
   cell_to_vertices_data::AbstractVector{<:Integer},
   cell_to_vertices_ptrs::AbstractVector{<:Integer},
   ctype_to_lface_to_lvertices,

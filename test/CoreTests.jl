@@ -74,7 +74,7 @@ c = face_to_vertices
 
 vertex_to_faces = generate_dual_connections(face_to_vertices)
 
-cell_to_faces = generate_cell_to_faces_from_faces(
+cell_to_faces = find_cell_to_faces(
   cell_to_vertices, vertex_to_faces, cell_to_ctype, ctype_to_refcell, 1)
 
 c = cell_to_faces

@@ -73,7 +73,7 @@ pc = append_ptrs(pa,pb)
 vertex_to_faces_data, vertex_to_faces_ptrs = generate_dual_connections(
   face_to_vertices_data,face_to_vertices_ptrs)
 
-_cell_to_faces_data, _cell_to_faces_ptrs = generate_cell_to_faces_from_faces(
+_cell_to_faces_data, _cell_to_faces_ptrs = find_cell_to_faces(
   cell_to_vertices_data,
   cell_to_vertices_ptrs,
   ctype_to_lface_to_lvertices,

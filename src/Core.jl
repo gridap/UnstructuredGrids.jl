@@ -7,7 +7,7 @@ import Base: ndims
 import Base: show
 import UnstructuredGrids.Kernels: generate_dual_connections
 import UnstructuredGrids.Kernels: generate_cell_to_faces
-import UnstructuredGrids.Kernels: generate_cell_to_faces_from_faces
+import UnstructuredGrids.Kernels: find_cell_to_faces
 import UnstructuredGrids.Kernels: generate_face_to_ftype
 import UnstructuredGrids.Kernels: generate_face_to_vertices
 import UnstructuredGrids.Kernels: generate_facet_to_isboundary
@@ -205,7 +205,7 @@ function generate_cell_to_faces(
 
 end
 
-function generate_cell_to_faces_from_faces(
+function find_cell_to_faces(
   cell_to_vertices::Connections,
   vertex_to_faces::Connections,
   cell_to_ctype::AbstractVector{<:Integer},
@@ -220,7 +220,7 @@ function generate_cell_to_faces_from_faces(
 
   ctype_to_lface_to_lvertices = refconnections( ctype_to_refcell, dim)
 
-  cell_to_faces_data, cell_to_faces_ptrs = generate_cell_to_faces_from_faces(
+  cell_to_faces_data, cell_to_faces_ptrs = find_cell_to_faces(
     cell_to_vertices_data,
     cell_to_vertices_ptrs,
     ctype_to_lface_to_lvertices,
