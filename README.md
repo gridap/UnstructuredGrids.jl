@@ -5,6 +5,8 @@
 [![Build Status](https://travis-ci.com/lssc-team/UnstructuredGrids.jl.svg?branch=master)](https://travis-ci.com/lssc-team/UnstructuredGrids.jl)
 [![Codecov](https://codecov.io/gh/lssc-team/UnstructuredGrids.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/lssc-team/UnstructuredGrids.jl)
 
+If you ❤️ this project, give us a ⭐️!
+
 **UnstructuredGrids** provides a set of functions providing common topological operations associated with unstructured meshes/grids such as:
 
 - Find the lower dimensial objects (e.g., edges and faces) on the boundary of each cell in the grid
