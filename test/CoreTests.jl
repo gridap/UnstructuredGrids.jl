@@ -127,6 +127,8 @@ fullgraph = generate_full_grid_graph(grid)
 @test fullgraph[2+1,0+1] == cell_to_vertices
 @test fullgraph[0+1,2+1] == vertex_to_cells
 
+@test isa(fullgraph[0+1,0+1],Connections)
+
 grid = UGrid(domain=(0,1,-1,0,0,1),partition=(2,2,2))
 
 fullgraph = generate_full_grid_graph(grid)
