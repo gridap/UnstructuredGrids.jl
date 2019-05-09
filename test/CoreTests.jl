@@ -128,6 +128,12 @@ fullgraph = generate_full_grid_graph(grid)
 @test fullgraph[0+1,2+1] == vertex_to_cells
 
 @test isa(fullgraph[0+1,0+1],Connections)
+@test isa(fullgraph[1+1,1+1],Connections)
+@test isa(fullgraph[2+1,2+1],Connections)
+
+@test length(fullgraph[0+1,0+1].ptrs) == length(vertex_to_cells.ptrs)
+@test length(fullgraph[1+1,1+1].ptrs) == length(face_to_vertices.ptrs)
+@test length(fullgraph[2+1,2+1].ptrs) == length(cell_to_vertices.ptrs)
 
 grid = UGrid(domain=(0,1,-1,0,0,1),partition=(2,2,2))
 

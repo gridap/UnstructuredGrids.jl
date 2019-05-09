@@ -418,13 +418,21 @@ function generate_full_grid_graph(grid::UGrid)
     end
   end
 
-  vertex_to_cells = data[0+1,D+1]
-  nvertices = length(vertex_to_cells.ptrs)-1
-  data[0+1,0+1] = Connections(
-    [i for i in 1:nvertices], [i for i in 1:(nvertices+1)])
+  for d in 0:(D-1)
+    dfaces_to_cells = data[d+1,D+1]
+    data[d+1,d+1] = _identity_connections(dfaces_to_cells)
+  end
+
+  cell_to_vertices = data[D+1,0+1]
+  data[D+1,D+1] = _identity_connections(cell_to_vertices)
 
   data
 
+end
+
+function _identity_connections(dfaces_to_cells)
+    ndfaces = length(dfaces_to_cells.ptrs)-1
+    Connections( [i for i in 1:ndfaces], [i for i in 1:(ndfaces+1)])
 end
 
 # Helpers
