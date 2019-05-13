@@ -61,7 +61,7 @@ writevtk(grid,"foo") # -> generates file "foo.vtu"
 
 ![](assets/grid.png)
 
-### Generate a numbering for the edges (1d object) in the mesh
+### Generate a numbering for the edges (1d-faces) of the grid
 
 ```julia
 n=1
