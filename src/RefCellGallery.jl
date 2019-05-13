@@ -3,6 +3,8 @@ module RefCellGallery
 using UnstructuredGrids.Core
 
 export SEGMENT
+export TRIANGLE
+export SQUARE
 export LEX_SQUARE
 export LEX_HEXAHEDRON
 
@@ -14,6 +16,24 @@ const SEGMENT = RefCell(
   coordinates = Float64[-1 1;],
   vtkid = 3,
   vtknodes = [1,2] )
+
+const TRIANGLE = RefCell(
+  ndims = 2,
+  faces = [ [[1],[2],[3]], [[1,2],[2,3],[3,1]] ],
+  facetypes = [ [1,1,1], [1,1,1] ],
+  reffaces = [ [VERTEX], [SEGMENT] ],
+  coordinates = Float64[ 0 1 0; 0 0 1],
+  vtkid = 5,
+  vtknodes = [1,2,3])
+
+const SQUARE = RefCell(
+  ndims = 2,
+  faces = [ [[1],[2],[3],[4]], [[1,2],[2,3],[3,4],[4,1]] ],
+  facetypes = [ [1,1,1,1], [1,1,1,1] ],
+  reffaces = [ [VERTEX], [SEGMENT] ],
+  coordinates = Float64[ -1 1 1 -1; -1 -1 1 1],
+  vtkid = 9,
+  vtknodes = [1,2,3,4])
 
 const LEX_SQUARE = RefCell(
   ndims = 2,

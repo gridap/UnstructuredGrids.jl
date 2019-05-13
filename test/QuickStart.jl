@@ -1,6 +1,36 @@
 
-#Pkg.add("https://github.com/lssc-team/UnstructuredGrids.jl")
+#Pkg.add("UnstructuredGrids")
 using UnstructuredGrids
+
+# Generate a grid from its nodal coordinates, cell connectivities,
+# and cell types
+
+# Define coordinates
+coords = zeros(2,9)
+coords[:,1] = [1,1]
+coords[:,2] = [3,1]
+coords[:,3] = [4,1]
+coords[:,4] = [1,2]
+coords[:,5] = [2,2]
+coords[:,6] = [1,3]
+coords[:,7] = [2,3]
+coords[:,8] = [3,3]
+coords[:,9] = [4,3]
+
+# Define connectivity
+connect = [1,2,5,4,2,3,9,4,5,7,6,5,8,7,5,2,8,2,9,8]
+offsets = [1,      5,    8,      12,   15,   18,   21]
+
+# Define cell types
+using UnstructuredGrids.RefCellGallery: SQUARE, TRIANGLE
+refcells = [SQUARE, TRIANGLE]
+types = [1,2,1,2,2,2]
+
+# Generate the UGrid object
+grid = UGrid(connect,offsets,types,refcells,coords)
+
+# Export grid into vtk format
+#writevtk(grid,"grid")
 
 # Generate a toy structured grid of the unit cube
 # with 2x3x2 quadrilateral cells
