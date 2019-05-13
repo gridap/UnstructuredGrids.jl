@@ -3,6 +3,7 @@ module Factories
 using UnstructuredGrids.Helpers
 using UnstructuredGrids.Kernels
 using UnstructuredGrids.Core
+using UnstructuredGrids.RefCellGallery
 
 # **DISCLAIMER**
 # This library is not supposed to be a mesh generator.
@@ -16,36 +17,6 @@ function UGrid(;domain,partition)
 end
 
 # Helpers
-
-const SEGMENT = RefCell(
-  ndims = 1,
-  faces = [ [[1],[2]] ],
-  facetypes = [ [1,1] ],
-  reffaces = [ [VERTEX] ],
-  coordinates = Float64[-1 1;],
-  vtkid = 3,
-  vtknodes = [1,2] )
-
-const SQUARE = RefCell(
-  ndims = 2,
-  faces = [ [[1],[2],[3],[4]], [[1,2],[3,4],[1,3],[2,4]] ],
-  facetypes = [ [1,1,1,1], [1,1,1,1] ],
-  reffaces = [ [VERTEX], [SEGMENT] ],
-  coordinates = Float64[ -1 1 -1 1; -1 -1 1 1],
-  vtkid = 9,
-  vtknodes = [1,2,4,3])
-
-const HEXAHEDRON = RefCell(
-  ndims = 3,
-  faces = [
-    [[1],[2],[3],[4],[5],[6],[7],[8]],
-    [[1,2],[3,4],[1,3],[2,4],[5,6],[7,8],[5,7],[6,8],[1,5],[2,6],[3,7],[4,8]],
-    [[1,2,3,4],[5,6,7,8],[1,2,5,6],[3,4,7,8],[1,3,5,7],[2,4,6,8]]],
-  facetypes = [ fill(1,8), fill(1,12), fill(1,6) ],
-  reffaces = [ [VERTEX], [SEGMENT], [SQUARE] ],
-  coordinates = Float64[ -1 1 -1 1 -1 1 -1 1; -1 -1 1 1 -1 -1 1 1; -1 -1 -1 -1 1 1 1 1],
-  vtkid = 12,
-  vtknodes = [1,2,4,3,5,6,8,7])
 
 function _cartesian_grid(domain,partition)
   refcell = _cartesian_grid_refcell(partition)
@@ -71,11 +42,11 @@ end
 _cartesian_grid_refcell(partition) = @notimplemented
 
 function _cartesian_grid_refcell(partition::NTuple{2,Int})
-  SQUARE
+  LEX_SQUARE
 end
 
 function _cartesian_grid_refcell(partition::NTuple{3,Int})
-  HEXAHEDRON
+  LEX_HEXAHEDRON
 end
 
 _cartesian_fill_points!(points,domain,partition) = @notimplemented

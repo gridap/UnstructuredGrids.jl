@@ -4,7 +4,7 @@ using Test
 using UnstructuredGrids.VTK
 using UnstructuredGrids.Core
 using UnstructuredGrids.Factories
-using UnstructuredGrids.Factories: HEXAHEDRON
+using UnstructuredGrids.RefCellGallery: LEX_HEXAHEDRON
 
 d = mktempdir()
 f = joinpath(d,"grid")
@@ -25,7 +25,7 @@ fgrid = UGrid(grid,1)
 
 writevtk(fgrid,f)
 
-writevtk(HEXAHEDRON,f)
+writevtk(LEX_HEXAHEDRON,f)
 
 rm(d,recursive=true)
 

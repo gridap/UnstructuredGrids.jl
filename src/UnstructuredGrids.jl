@@ -3,6 +3,7 @@ module UnstructuredGrids
 include("Helpers.jl")
 include("Kernels.jl")
 include("Core.jl")
+include("RefCellGallery.jl")
 include("Factories.jl")
 include("VTK.jl")
 
