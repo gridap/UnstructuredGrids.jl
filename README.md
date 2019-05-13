@@ -26,6 +26,7 @@ Pkg.add("UnstructuredGrids")
 
 ```julia
 using UnstructuredGrids
+using UnstructuredGrids.RefCellGallery: SQUARE, TRIANGLE
 
 # Define coordinates
 coords = zeros(2,9)
@@ -44,7 +45,6 @@ connect = [1,2,5,4,2,3,9,4,5,7,6,5,8,7,5,2,8,2,9,8]
 offsets = [1,      5,    8,      12,   15,   18,   21]
 
 # Define cell types
-using UnstructuredGrids.RefCellGallery: SQUARE, TRIANGLE
 refcells = [SQUARE, TRIANGLE]
 types = [1,2,1,2,2,2]
 
@@ -52,6 +52,13 @@ types = [1,2,1,2,2,2]
 grid = UGrid(connect,offsets,types,refcells,coords)
 
 ```
+
+### Export the `UGrid` object into vtk format
+
+```julia
+writevtk(grid,"foo") # -> generates file "foo.vtu" 
+```
+
 
 
 
