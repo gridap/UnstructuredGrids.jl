@@ -59,6 +59,7 @@ grid = UGrid(connect,offsets,types,refcells,coords)
 writevtk(grid,"foo") # -> generates file "foo.vtu" 
 ```
 
+![](assets/grid.png)
 
 
 
