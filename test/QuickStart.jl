@@ -32,6 +32,21 @@ grid = UGrid(connect,offsets,types,refcells,coords)
 # Export grid into vtk format
 #writevtk(grid,"grid")
 
+# Generate a global numbering for the edges (1d objects) of the grid,
+# and find which edges are on the boundary of each cell
+n=1
+cell_to_edges = generate_cell_to_faces(n,grid)
+
+#@show cell_to_edges.list
+#@show cell_to_edges.ptrs
+
+
+
+
+
+
+
+
 # Generate a toy structured grid of the unit cube
 # with 2x3x2 quadrilateral cells
 grid = UGrid(domain=(0,1,0,1,0,1),partition=(2,3,2))
