@@ -59,6 +59,27 @@ grid = UGrid(connect,offsets,types,refcells,coords)
 writevtk(grid,"foo") # -> generates file "foo.vtu" 
 ```
 
+![](assets/grid.png)
+
+### Generate a numbering for the edges (1d-faces) of the grid
+
+```julia
+n=1
+cell_to_edges = generate_cell_to_faces(n,grid)
+@show cell_to_edges.list
+@show cell_to_edges.ptrs
+# cell_to_edges.list = [1, 2, 3, 4, 5, 6, 7, 3, 8, 9, 10, 11, 12, 8, 2, 13, 11, 7, 14, 13]
+# cell_to_edges.ptrs = [1, 5, 8, 12, 15, 18, 21]
+```
+The vector `cell_to_edges.list` contains the ids of the edges for each cell. The vector `cell_to_edges.ptrs` determines which range of the previous vector correspond to a given cell. E.g., the edge ids on cell number 3 are recovered as follows:
+```julia
+cell = 3
+a = cell_to_edges.ptrs[cell]
+b = cell_to_edges.ptrs[cell+1]-1
+edges = cell_to_edges.list[a:b]
+@show edges
+# edges = [3, 8, 9, 10]
+```
 
 
 
