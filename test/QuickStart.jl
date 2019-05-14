@@ -40,6 +40,11 @@ cell_to_edges = generate_cell_to_faces(n,grid)
 #@show cell_to_edges.list
 #@show cell_to_edges.ptrs
 
+cell = 3
+a = cell_to_edges.ptrs[cell]
+b = cell_to_edges.ptrs[cell+1]-1
+edges = cell_to_edges.list[a:b]
+#@show edges
 
 
 
