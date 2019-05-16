@@ -2,8 +2,8 @@
 
 *Helper routines for topological operations on unstructured grids in julia*
 
-[![Build Status](https://travis-ci.com/lssc-team/UnstructuredGrids.jl.svg?branch=master)](https://travis-ci.com/lssc-team/UnstructuredGrids.jl)
-[![Codecov](https://codecov.io/gh/lssc-team/UnstructuredGrids.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/lssc-team/UnstructuredGrids.jl)
+[![Build Status](https://travis-ci.com/gridap/UnstructuredGrids.jl.svg?branch=master)](https://travis-ci.com/gridap/UnstructuredGrids.jl)
+[![Codecov](https://codecov.io/gh/gridap/UnstructuredGrids.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/gridap/UnstructuredGrids.jl)
 
 If you ❤️ this project, give us a ⭐️!
 
