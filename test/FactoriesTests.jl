@@ -3,6 +3,7 @@ module FactoriesTests
 using Test
 using UnstructuredGrids.Core
 using UnstructuredGrids.Factories
+using UnstructuredGrids.RefCellGallery
 
 grid = UGrid(domain=(0,1,-1,0),partition=(2,2))
 
@@ -37,5 +38,22 @@ cptrs = [1, 9, 17, 25, 33, 41, 49]
 @test list(connections(grid)) == clist
 @test ptrs(connections(grid)) == cptrs
 @test celltypes(grid) == ones(Int,length(cptrs)-1)
+
+
+grid = UGrid(domain=(0,1,0,1),partition=(2,2))
+
+ltcell_to_lpoints = [[1,2,3],[4,3,2]]
+
+tgrid = UGrid(grid,ltcell_to_lpoints,TRIANGLE)
+
+@test coordinates(grid) === coordinates(tgrid)
+
+clist = [1, 2, 4, 5, 4, 2, 2, 3, 5, 6, 5, 3, 4, 5, 7, 8, 7, 5, 5, 6, 8, 9, 8, 6]
+cptrs = [1, 4, 7, 10, 13, 16, 19, 22, 25]
+
+@test list(connections(tgrid)) == clist
+@test ptrs(connections(tgrid)) == cptrs
+@test celltypes(tgrid) == ones(Int,length(cptrs)-1)
+
 
 end # module FactoriesTests
