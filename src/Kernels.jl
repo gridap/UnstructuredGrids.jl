@@ -14,6 +14,8 @@ export length_to_ptrs!
 export generate_data_and_ptrs
 export UNSET
 export append_ptrs
+export refine_grid_connectivity
+export generate_tface_to_face
 
 """
 Given the faces on the boundary of each cell,
@@ -140,12 +142,12 @@ end
 """
 Given a vector of vectors compute the corresponding data and and ptrs
 """
-function generate_data_and_ptrs(vv::Vector{Vector{Int}})
-  ptrs = Vector{Int}(undef,length(vv)+1)
+function generate_data_and_ptrs(vv::Vector{Vector{T}}) where T
+  ptrs = Vector{T}(undef,length(vv)+1)
   _generate_data_and_ptrs_fill_ptrs!(ptrs,vv)
   length_to_ptrs!(ptrs)
   ndata = ptrs[end]-1
-  data = Vector{Int}(undef,ndata)
+  data = Vector{T}(undef,ndata)
   _generate_data_and_ptrs_fill_data!(data,vv)
   (data, ptrs)
 end
@@ -157,6 +159,63 @@ function append_ptrs(pa::AbstractVector{T},pb::AbstractVector{T}) where T
   _append_count!(p,pa,pb)
   length_to_ptrs!(p)
   p
+end
+
+function refine_grid_connectivity(
+  cell_to_points_data::AbstractVector{T},
+  cell_to_points_ptrs::AbstractVector{P},
+  ltcell_to_lpoints) where {T,P}
+
+  nltcells = length(ltcell_to_lpoints)
+  ncells = length(cell_to_points_ptrs) - 1
+  ntcells = ncells * nltcells
+
+  tcell_to_points_ptrs = zeros(P,ntcells+1)
+
+  _refine_grid_connectivity_count!(
+    tcell_to_points_ptrs,
+    ncells,
+    ltcell_to_lpoints)
+
+  length_to_ptrs!(tcell_to_points_ptrs)
+
+  ndata = tcell_to_points_ptrs[end]-1
+
+  tcell_to_points_data = zeros(T,ndata)
+
+  _refine_grid_connectivity!(
+    tcell_to_points_data,
+    cell_to_points_data,
+    cell_to_points_ptrs,
+    ltcell_to_lpoints )
+
+  (tcell_to_points_data, tcell_to_points_ptrs)
+
+end
+
+function generate_tface_to_face(
+  cell_to_faces_data::AbstractVector{T},
+  cell_to_faces_ptrs,
+  tcell_to_tfaces_data,
+  tcell_to_tfaces_ptrs,
+  ltcell_to_lnodes,
+  ltface_to_ltnodes,
+  lface_to_lnodes,
+  ntfaces) where T
+
+  ltcell_to_lfaces =  _generate_local_face_relations(
+    ltcell_to_lnodes,
+    ltface_to_ltnodes,
+    lface_to_lnodes)
+
+  _generate_tface_to_face(
+    cell_to_faces_data,
+    cell_to_faces_ptrs,
+    tcell_to_tfaces_data,
+    tcell_to_tfaces_ptrs,
+    ltcell_to_lfaces,
+    ntfaces)
+
 end
 
 # Helpers
@@ -906,6 +965,138 @@ function _face_to_vertices_fill!(
         vertex = cell_to_vertices_data[c+lvertex]
         face_to_vertices_data[v+lfvertex] = vertex
       end
+    end
+  end
+
+end
+
+function  _refine_grid_connectivity_count!(
+    tcell_to_points_ptrs,
+    ncells,
+    ltcell_to_lpoints)
+
+  tcell = 1
+
+  for cell in 1:ncells
+    for lpoints in ltcell_to_lpoints
+      tcell_to_points_ptrs[tcell+1] = length(lpoints)
+      tcell +=1
+    end
+  end
+
+end
+
+function _refine_grid_connectivity!(
+    tcell_to_points_data,
+    cell_to_points_data,
+    cell_to_points_ptrs,
+    ltcell_to_lpoints )
+
+  ncells = length(cell_to_points_ptrs) - 1
+
+  k = 1
+  for cell in 1:ncells
+    a = cell_to_points_ptrs[cell]-1
+    for lpoints in ltcell_to_lpoints
+      for lpoint in lpoints
+        point = cell_to_points_data[a+lpoint]
+        tcell_to_points_data[k] = point
+        k += 1
+      end
+    end
+  end
+
+end
+
+function _generate_local_face_relations(
+  ltcell_to_lnodes, ltface_to_ltnodes, lface_to_lnodes)
+
+  nltcells = length(ltcell_to_lnodes)
+  nltfaces = length(ltface_to_ltnodes)
+  nlfaces = length(lface_to_lnodes)
+
+  ltcell_ltface_to_lface = [ zeros(Int,nltfaces) for ltcell in 1:nltcells  ]
+
+  for ltcell in 1:nltcells
+
+    ltnode_to_lnode = ltcell_to_lnodes[ltcell]
+
+    for ltface in 1:nltfaces
+      ltnodes = ltface_to_ltnodes[ltface]
+      for lface in 1:nlfaces
+        lnodes = lface_to_lnodes[lface]
+        allin = true
+        for ltnode in ltnodes
+          lnode = ltnode_to_lnode[ltnode]
+          if !(lnode in lnodes)
+            allin = false
+            break
+          end
+        end
+        if allin
+          ltcell_ltface_to_lface[ltcell][ltface] = lface
+          break
+        end
+      end
+    end
+
+  end
+
+  ltcell_ltface_to_lface
+
+end
+
+
+function _generate_tface_to_face(
+  cell_to_faces_data::AbstractVector{T},
+  cell_to_faces_ptrs,
+  tcell_to_tfaces_data,
+  tcell_to_tfaces_ptrs,
+  ltcell_to_lfaces,
+  ntfaces) where T
+
+  tface_to_face = zeros(T,ntfaces)
+
+  _generate_tface_to_face!(
+    tface_to_face,
+    cell_to_faces_data,
+    cell_to_faces_ptrs,
+    tcell_to_tfaces_data,
+    tcell_to_tfaces_ptrs,
+    ltcell_to_lfaces)
+
+  tface_to_face
+
+end
+
+function  _generate_tface_to_face!(
+  tface_to_face,
+  cell_to_faces_data,
+  cell_to_faces_ptrs,
+  tcell_to_tfaces_data,
+  tcell_to_tfaces_ptrs,
+  ltcell_to_lfaces)
+
+  ncells = length(cell_to_faces_ptrs)-1
+  nltcells = length(ltcell_to_lfaces)
+
+  tcell = 1
+  for cell in 1:ncells
+    c = cell_to_faces_ptrs[cell]-1
+    for ltcell in 1:nltcells
+      a = tcell_to_tfaces_ptrs[tcell]-1
+      b = tcell_to_tfaces_ptrs[tcell+1]
+      nltfaces = b - (a+1)
+      ltface_to_lface = ltcell_to_lfaces[ltcell]
+      for ltface in 1:nltfaces
+        tface = tcell_to_tfaces_data[a+ltface]
+        lface = ltface_to_lface[ltface]
+        if lface != 0
+          face = cell_to_faces_data[c+lface]
+          tface_to_face[tface] = face
+        end
+      end
+      tcell += 1
     end
   end
 

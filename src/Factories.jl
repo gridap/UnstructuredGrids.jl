@@ -16,6 +16,13 @@ function UGrid(;domain,partition)
   _cartesian_grid(domain,partition)
 end
 
+function UGrid(
+  grid::UGrid,
+  ltcell_to_lpoints::Vector{Vector{Int}},
+  refsubcell::RefCell)
+  _refine_grid(grid,ltcell_to_lpoints,refsubcell)
+end
+
 # Helpers
 
 function _cartesian_grid(domain,partition)
@@ -133,6 +140,25 @@ function _cartesian_fill_cells!(celldata,partition::NTuple{3,Int})
       end
     end
   end
+end
+
+function _refine_grid(grid::UGrid,ltcell_to_lpoints,refsimplex)
+
+  @assert length(grid.refcells) == 1
+ 
+  coords = grid.coordinates
+  cells_data = grid.cells.list
+  cells_ptrs = grid.cells.ptrs
+  cell_types = grid.celltypes
+
+  tcells_data, tcells_ptrs = refine_grid_connectivity(
+    cells_data, cells_ptrs, ltcell_to_lpoints)
+
+  ntcells = length(tcells_ptrs) -1
+  tcell_types = fill(1,ntcells)
+
+  UGrid(tcells_data,tcells_ptrs,tcell_types,[refsimplex,],coords)
+
 end
 
 end # module Factories
