@@ -7,6 +7,7 @@ export TRIANGLE
 export SQUARE
 export LEX_SQUARE
 export LEX_HEXAHEDRON
+export TETRAHEDRON
 
 const SEGMENT = RefCell(
   ndims = 1,
@@ -25,6 +26,18 @@ const TRIANGLE = RefCell(
   coordinates = Float64[ 0 1 0; 0 0 1],
   vtkid = 5,
   vtknodes = [1,2,3])
+
+const TETRAHEDRON = RefCell(
+  ndims = 3,
+  faces = [
+    [[1],[2],[3],[4]],
+    [[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]],
+    [[1,3,2],[1,2,4],[1,4,3],[2,3,4]] ],
+  facetypes = [ [1,1,1,1], [1,1,1,1,1,1], [1,1,1,1] ],
+  reffaces = [ [VERTEX], [SEGMENT], [TRIANGLE] ],
+  coordinates = Float64[ 0 1 0 0; 0 0 1 0; 0 0 0 1],
+  vtkid = 10,
+  vtknodes = [1,2,3,4])
 
 const SQUARE = RefCell(
   ndims = 2,
