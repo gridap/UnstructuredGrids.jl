@@ -4,6 +4,7 @@ using Test
 using UnstructuredGrids.Core
 using UnstructuredGrids.Factories
 using UnstructuredGrids.RefCellGallery
+using UnstructuredGrids.VTK
 
 grid = UGrid(domain=(0,1,-1,0),partition=(2,2))
 
@@ -55,5 +56,11 @@ cptrs = [1, 4, 7, 10, 13, 16, 19, 22, 25]
 @test ptrs(connections(tgrid)) == cptrs
 @test celltypes(tgrid) == ones(Int,length(cptrs)-1)
 
+ltcell_to_lpoints = [
+ [7,3,2,1], [7,5,2,1], [7,4,3,2], [7,4,8,2], [7,6,5,2], [7,6,8,2]]
+
+grid = UGrid(domain=(0,1,0,1,0,1),partition=(2,2,3))
+
+tgrid = UGrid(grid,ltcell_to_lpoints,TETRAHEDRON)
 
 end # module FactoriesTests
