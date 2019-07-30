@@ -2,6 +2,7 @@ module FactoriesTests
 
 using Test
 using UnstructuredGrids.Core
+using UnstructuredGrids.Kernels
 using UnstructuredGrids.Factories
 using UnstructuredGrids.RefCellGallery
 using UnstructuredGrids.VTK
@@ -62,5 +63,36 @@ ltcell_to_lpoints = [
 grid = UGrid(domain=(0,1,0,1,0,1),partition=(2,2,3))
 
 tgrid = UGrid(grid,ltcell_to_lpoints,TETRAHEDRON)
+
+
+D = 1
+
+grid = UGrid(domain=(0,1,0,1),partition=(2,2))
+
+ltcell_to_lnodes = [[1,2,3],[4,3,2]]
+tgrid = UGrid(grid,ltcell_to_lnodes,TRIANGLE)
+
+cell_to_faces = generate_cell_to_faces(D,grid)
+tcell_to_tfaces = generate_cell_to_faces(D,tgrid)
+
+refcell = grid.refcells[1]
+reftcell = tgrid.refcells[1]
+
+ltface_to_ltnodes = reftcell.faces[D+1]
+lface_to_lnodes = refcell.faces[D+1]
+
+ntfaces = maximum(tcell_to_tfaces.list)
+
+tface_to_face = generate_tface_to_face(
+  cell_to_faces.list,
+  cell_to_faces.ptrs,
+  tcell_to_tfaces.list,
+  tcell_to_tfaces.ptrs,
+  ltcell_to_lnodes,
+  ltface_to_ltnodes,
+  lface_to_lnodes,
+  ntfaces)
+
+@test tface_to_face == [1, 0, 3, 2, 4, 5, 0, 6, 7, 0, 9, 8, 10, 0, 11, 12]
 
 end # module FactoriesTests
