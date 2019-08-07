@@ -98,5 +98,19 @@ _vertex_to_isboundary = generate_face_to_isboundary(
 
 @test vertex_to_isboundary == _vertex_to_isboundary
 
+gface_to_vertices = [[1,2],[2,5],[4,5]]
+
+gface_to_vertices_data, gface_to_vertices_ptrs =
+  generate_data_and_ptrs(gface_to_vertices)
+
+gface_to_face = find_gface_to_face(
+  face_to_vertices_data,
+  face_to_vertices_ptrs,
+  vertex_to_faces_data,
+  vertex_to_faces_ptrs,
+  gface_to_vertices_data,
+  gface_to_vertices_ptrs)
+
+@test gface_to_face == [1,4,2]
 
 end # module KernelsTests

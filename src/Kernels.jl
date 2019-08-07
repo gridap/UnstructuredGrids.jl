@@ -16,6 +16,7 @@ export UNSET
 export append_ptrs
 export refine_grid_connectivity
 export generate_tface_to_face
+export find_gface_to_face
 
 """
 Given the faces on the boundary of each cell,
@@ -215,6 +216,35 @@ function generate_tface_to_face(
     tcell_to_tfaces_ptrs,
     ltcell_to_lfaces,
     ntfaces)
+
+end
+
+function find_gface_to_face(
+  face_to_nodes_data,
+  face_to_nodes_ptrs,
+  node_to_faces_data::AbstractVector{T},
+  node_to_faces_ptrs,
+  gface_to_nodes_data,
+  gface_to_nodes_ptrs) where T
+
+  ngfaces = length(gface_to_nodes_ptrs) - 1
+  gface_to_face = zeros(T,ngfaces)
+  n = max_cells_arround_vertex(node_to_faces_ptrs)
+  faces_around = fill(UNSET,n)
+  faces_around_scratch = fill(UNSET,n)
+
+  _fill_gface_to_face!(
+    gface_to_face,
+    face_to_nodes_data,
+    face_to_nodes_ptrs,
+    node_to_faces_data,
+    node_to_faces_ptrs,
+    gface_to_nodes_data,
+    gface_to_nodes_ptrs,
+    faces_around,
+    faces_around_scratch)
+
+  gface_to_face
 
 end
 
@@ -1098,6 +1128,59 @@ function  _generate_tface_to_face!(
       end
       tcell += 1
     end
+  end
+
+end
+
+function  _fill_gface_to_face!(
+  gface_to_face,
+  face_to_nodes_data,
+  face_to_nodes_ptrs,
+  node_to_faces_data,
+  node_to_faces_ptrs,
+  gface_to_nodes_data,
+  gface_to_nodes_ptrs,
+  faces_around,
+  faces_around_scratch)
+
+  ngfaces = length(gface_to_nodes_ptrs) - 1
+
+  nfaces_around = UNSET
+  nfaces_around_scratch = UNSET
+
+  for gface in 1:ngfaces
+
+    a = gface_to_nodes_ptrs[gface]-1
+    b = gface_to_nodes_ptrs[gface+1]
+    nlnodes = b-(a+1)
+
+    for lnode in 1:nlnodes
+      node = gface_to_nodes_data[lnode+a]
+      if lnode == 1
+        nfaces_around = _fill_cells_around_scratch!(
+          faces_around,
+          node,
+          node_to_faces_data,
+          node_to_faces_ptrs)
+      else
+        nfaces_around_scratch = _fill_cells_around_scratch!(
+          faces_around_scratch,
+          node,
+          node_to_faces_data,
+          node_to_faces_ptrs)
+        _set_intersection!(
+          faces_around,faces_around_scratch,
+          nfaces_around,nfaces_around_scratch)
+      end
+    end
+
+    for face in faces_around
+      if face != UNSET
+        gface_to_face[gface] = face
+        break
+      end
+    end
+
   end
 
 end
